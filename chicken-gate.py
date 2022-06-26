@@ -36,6 +36,9 @@ class ChickenGate:
         self.schedule_lower()
 
         self.sched.print_jobs()
+        with open("log.txt", "a") as f:
+            self.add_to_log("")
+            self.sched.print_jobs(out=f)
 
     def update_sunrise_sunset_times(self):
         latitude = 49.164379
