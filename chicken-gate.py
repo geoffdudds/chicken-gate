@@ -1,5 +1,6 @@
 from suntime import Sun
 from dateutil import tz
+from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 
@@ -9,6 +10,7 @@ class ChickenGate:
         self.sunset = None
         self.lift_job = None
         self.lower_job = None
+        self.add_to_log("Program started")
 
         # create schedule, add job to update sunrise / sunset times, and start the scheduler
         self.sched = BlockingScheduler()
@@ -20,6 +22,13 @@ class ChickenGate:
         )
         self.update_schedule()
         self.sched.start()
+
+    def add_to_log(self, entry):
+        now = datetime.now()
+        time = now.strftime("%Y/%m/%d - %H:%M:%S")
+        with open("log.txt", "a+") as f:
+            f.write(time + ": " + entry)
+            f.write("\n")
 
     def update_schedule(self):
         self.update_sunrise_sunset_times()
@@ -43,10 +52,10 @@ class ChickenGate:
         self.sunset = sunset_utc.astimezone(to_zone)
 
     def lift(self):
-        print("executing lift job...")
+        self.add_to_log("Executing lift job...")
 
     def lower(self):
-        print("executing lower job...")
+        self.add_to_log("Executing lower job...")
 
     def schedule_lift(self):
         if self.lift_job is not None:
@@ -58,7 +67,9 @@ class ChickenGate:
             minute=self.sunset.minute,
         )
 
-        print("Gate schedule to lift at {}".format(self.sunset.strftime("%H:%M")))
+        msg = "Gate scheduled to lift at {}".format(self.sunset.strftime("%H:%M"))
+        print(msg)
+        self.add_to_log(msg)
 
     def schedule_lower(self):
         if self.lower_job is not None:
@@ -70,7 +81,9 @@ class ChickenGate:
             minute=self.sunrise.minute,
         )
 
-        print("Gate schedule to lower at {}".format(self.sunrise.strftime("%H:%M")))
+        msg = "Gate scheduled to lower at {}".format(self.sunrise.strftime("%H:%M"))
+        print(msg)
+        self.add_to_log(msg)
 
 
 def main():
