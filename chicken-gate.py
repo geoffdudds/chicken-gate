@@ -1,4 +1,3 @@
-from datetime import datetime, date
 from suntime import Sun
 from dateutil import tz
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -33,17 +32,14 @@ class ChickenGate:
         latitude = 49.164379
         longitude = -123.936661
         sun = Sun(latitude, longitude)
-        from_zone = tz.gettz("UTC")
         to_zone = tz.gettz()
 
         # get sunrise time
         sunrise_utc = sun.get_sunrise_time()
-        sunrise_utc = sunrise_utc.replace(tzinfo=from_zone)
         self.sunrise = sunrise_utc.astimezone(to_zone)
 
         # repeat for sunset time
         sunset_utc = sun.get_sunset_time()
-        sunset_utc = sunset_utc.replace(tzinfo=from_zone)
         self.sunset = sunset_utc.astimezone(to_zone)
 
     def lift(self):
