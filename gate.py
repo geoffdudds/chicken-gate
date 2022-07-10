@@ -22,10 +22,14 @@ class Gate:
         self.stop()
 
     def turn_cw(self):
+        GPIO.setup(4, GPIO.OUT)  # set Relay 1 output
+        GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
         GPIO.output(4, GPIO.HIGH)
         GPIO.output(17, GPIO.LOW)
 
     def turn_ccw(self):
+        GPIO.setup(4, GPIO.OUT)  # set Relay 1 output
+        GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
         GPIO.output(4, GPIO.LOW)
         GPIO.output(17, GPIO.HIGH)
 
