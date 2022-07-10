@@ -3,6 +3,7 @@ from dateutil import tz
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from gate import Gate
+import time
 
 
 class ChickenGate:
@@ -23,6 +24,14 @@ class ChickenGate:
             minute=0,
         )
         self.update_schedule()
+
+        # test relay
+        while True:
+            self.gate.turn_cw()
+            time.sleep(2)
+            self.gate.turn_ccw()
+            time.sleep(2)
+
         self.sched.start()
 
     def add_to_log(self, entry):
