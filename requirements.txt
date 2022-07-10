@@ -2,4 +2,3 @@ suntime
 apscheduler
 RPi.GPIO
 gpiozero
-time
