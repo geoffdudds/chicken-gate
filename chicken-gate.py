@@ -2,6 +2,7 @@ from suntime import Sun
 from dateutil import tz
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
+from gate import Gate
 
 
 class ChickenGate:
@@ -11,6 +12,7 @@ class ChickenGate:
         self.lift_job = None
         self.lower_job = None
         self.add_to_log("Program started")
+        self.gate = Gate()
 
         # create schedule, add job to update sunrise / sunset times, and start the scheduler
         self.sched = BlockingScheduler()
@@ -56,9 +58,11 @@ class ChickenGate:
 
     def lift(self):
         self.add_to_log("Executing lift job...")
+        self.gate.lift()
 
     def lower(self):
         self.add_to_log("Executing lower job...")
+        self.gate.lower()
 
     def schedule_lift(self):
         if self.lift_job is not None:

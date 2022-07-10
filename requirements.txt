@@ -1,2 +1,5 @@
 suntime
 apscheduler
+RPi.GPIO
+gpiozero
+sleep
