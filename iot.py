@@ -1,14 +1,18 @@
+from __future__ import print_function
 import blynklib
 # import blynklib_mp as blynklib # micropython import
 
-BLYNK_AUTH = 'KYJB0BTpztR5lwKpvu_C3sN02NRruRXk' #insert your Auth Token here
+BLYNK_TEMPLATE_ID = "TMPLhSEyqAYY"
+BLYNK_DEVICE_NAME = "Quickstart Template"
+BLYNK_AUTH = "kNsJD8N7uAvSyxtL2GS84OHbbdz7IVrn"
+
+#BLYNK_AUTH = 'KYJB0BTpztR5lwKpvu_C3sN02NRruRXk' #insert your Auth Token here
 # base lib init
-blynk = blynklib.Blynk(BLYNK_AUTH)
+blynk = blynklib.Blynk(BLYNK_AUTH, heartbeat=15, log=print)
  
 # advanced options of lib init
-# from __future__ import print_function
-# blynk = blynklib.Blynk(BLYNK_AUTH, server='blynk-cloud.com', port=80, ssl_cert=None,
-#                        heartbeat=10, rcv_buffer=1024, log=print)
+#blynk = blynklib.Blynk(BLYNK_AUTH, server='blynk-cloud.com', port=80, ssl_cert=None,
+#                       heartbeat=10, rcv_buffer=1024, log=print)
 
 # Lib init with SSL socket connection
 # blynk = blynklib.Blynk(BLYNK_AUTH, port=443, ssl_cert='<path to local blynk server certificate>')
@@ -36,7 +40,7 @@ def read_virtual_pin_handler(pin):
     # example: blynk.virtual_write(24, sensor_data)
         
     # you can perform actions if value reaches a threshold (e.g. some critical value)
-    if sensor_data >= critilcal_data_value
+    if sensor_data >= critilcal_data_value:
         
         blynk.set_property(pin, 'color', '#FF0000') # set red color for the widget UI element 
         blynk.notify('Warning critical value') # send push notification to Blynk App 
