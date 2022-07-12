@@ -12,8 +12,8 @@ class ChickenGate:
         self.sunset = None
         self.lift_job = None
         self.lower_job = None
-        self.add_to_log("Program started")
         self.gate = Gate()
+        self.add_to_log("Program started")
 
         # create schedule, add job to update sunrise / sunset times, and start the scheduler
         self.sched = BlockingScheduler()
@@ -27,9 +27,9 @@ class ChickenGate:
 
         # test relay
         while True:
-            self.gate.turn_cw()
+            self.gate.lift()
             time.sleep(2)
-            self.gate.turn_ccw()
+            self.gate.lower()
             time.sleep(2)
 
         self.sched.start()
@@ -108,3 +108,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
