@@ -7,8 +7,8 @@ def main():
     gate = Gate()
 
     # todo schedule cannot be blocking
-    schedule = Schedule(gate)
     api = Api(gate)
+    schedule = Schedule(gate)
 
     # init gate position at startup? Maybe schedule can do this?
 
