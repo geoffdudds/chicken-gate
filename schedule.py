@@ -1,7 +1,7 @@
 from suntime import Sun
 from dateutil import tz
 from datetime import datetime
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from gate import Gate
 import time
 
@@ -16,7 +16,7 @@ class ChickenGate:
         self.add_to_log("Program started")
 
         # create schedule, add job to update sunrise / sunset times, and start the scheduler
-        self.sched = BlockingScheduler()
+        self.sched = BackgroundScheduler()
         self.update_sched_job = self.sched.add_job(
             func=self.update_schedule,
             trigger="cron",
