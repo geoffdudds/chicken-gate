@@ -6,7 +6,7 @@ from gate import Gate
 import time
 
 
-class ChickenGate:
+class Schedule:
     def __init__(self, gate: Gate):
         self.sunrise = None
         self.sunset = None
