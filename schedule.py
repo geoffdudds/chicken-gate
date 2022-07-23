@@ -6,12 +6,14 @@ from gate import Gate
 import time
 
 
-class ChickenGate:
+class Schedule:
     def __init__(self):
-        self.sunrise = None
-        self.sunset = None
-        self.lift_job = None
-        self.lower_job = None
+        self.sunrise_time = None
+        self.sunset_time = None
+        self.sunset_job = None
+        self.sunrise_job = None
+        self.sunrise_cb = None
+        self.sunset_cb = None
         self.gate = Gate()
         self.add_to_log("Program started")
 
@@ -34,6 +36,12 @@ class ChickenGate:
 
         self.sched.start()
 
+    def set_sunrise_cb(self, sunrise_cb):
+        self.sunrise_cb = sunrise_cb
+
+    def set_sunset_cb(self, sunset_cb):
+        self.sunrise_cb = sunset_cb
+
     def add_to_log(self, entry):
         now = datetime.now()
         time = now.strftime("%Y/%m/%d - %H:%M:%S")
@@ -43,8 +51,8 @@ class ChickenGate:
 
     def update_schedule(self):
         self.update_sunrise_sunset_times()
-        self.schedule_lift()
-        self.schedule_lower()
+        self.schedule_sunset()
+        self.schedule_sunrise()
 
         self.sched.print_jobs()
         with open("log.txt", "a") as f:
@@ -59,53 +67,56 @@ class ChickenGate:
 
         # get sunrise time
         sunrise_utc = sun.get_sunrise_time()
-        self.sunrise = sunrise_utc.astimezone(to_zone)
+        self.sunrise_time = sunrise_utc.astimezone(to_zone)
 
         # repeat for sunset time
         sunset_utc = sun.get_sunset_time()
-        self.sunset = sunset_utc.astimezone(to_zone)
+        self.sunset_time = sunset_utc.astimezone(to_zone)
 
-    def lift(self):
-        self.add_to_log("Executing lift job...")
-        self.gate.lift()
+    def run_sunset_job(self):
+        self.add_to_log("Running sunset job...")
+        if self.sunset_cb is not None:
+            self.sunset_cb()
 
-    def lower(self):
-        self.add_to_log("Executing lower job...")
-        self.gate.lower()
+    def run_sunrise_job(self):
+        self.add_to_log("Running sunrise job...")
+        if self.sunrise_cb is not None:
+            self.sunrise_cb()
 
-    def schedule_lift(self):
-        if self.lift_job is not None:
-            self.lift_job.remove()
-        self.lift_job = self.sched.add_job(
-            func=self.lift,
+    def schedule_sunset(self):
+        if self.sunset_job is not None:
+            self.sunset_job.remove()
+        self.sunset_job = self.sched.add_job(
+            func=self.run_sunset_job,
             trigger="cron",
-            hour=self.sunset.hour,
-            minute=self.sunset.minute,
+            hour=self.sunset_time.hour,
+            minute=self.sunset_time.minute,
         )
 
-        msg = "Gate scheduled to lift at {}".format(self.sunset.strftime("%H:%M"))
+        msg = "Gate scheduled to lift at {}".format(self.sunset_time.strftime("%H:%M"))
         print(msg)
         self.add_to_log(msg)
 
-    def schedule_lower(self):
-        if self.lower_job is not None:
-            self.lower_job.remove()
-        self.lower_job = self.sched.add_job(
-            func=self.lower,
+    def schedule_sunrise(self):
+        if self.sunrise_job is not None:
+            self.sunrise_job.remove()
+        self.sunrise_job = self.sched.add_job(
+            func=self.run_sunrise_job,
             trigger="cron",
-            hour=self.sunrise.hour,
-            minute=self.sunrise.minute,
+            hour=self.sunrise_time.hour,
+            minute=self.sunrise_time.minute,
         )
 
-        msg = "Gate scheduled to lower at {}".format(self.sunrise.strftime("%H:%M"))
+        msg = "Gate scheduled to lower at {}".format(
+            self.sunrise_time.strftime("%H:%M")
+        )
         print(msg)
         self.add_to_log(msg)
 
 
 def main():
-    chicken_gate = ChickenGate()
+    chicken_gate = Schedule()
 
 
 if __name__ == "__main__":
     main()
-
