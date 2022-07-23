@@ -9,6 +9,7 @@ class Api:
 
     def __init__(self, gate: Gate):
         Api.gate = gate
+        Api.gate.set_position_fbk_cbk(self.write_gate_status)
         Api.blynk = BlynkLib.Blynk("3Ngd6Tdw9djI17trS1AfVY5aXfhlBwiz")
         self.time = 0
         self.timer = BlynkTimer()
