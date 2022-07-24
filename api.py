@@ -15,19 +15,20 @@ class Api:
         self.timer = BlynkTimer()
         self.timer.set_interval(5, self.elapse_5s)
 
-    # Register Virtual Pins
-    @blynk.on("V0")
-    def v0_gate_cmd_write_handler(value):
-        print("V0 gate command: {}".format(value))
-        if value == 0:
-            Api.gate.lower()
-        elif value == 1:
-            Api.gate.lift()
-        else:
-            print("invalid gate command")
+        # Register Virtual Pins
+        @Api.blynk.on("V0")
+        def v0_gate_cmd_write_handler(value):
+            print("V0 gate command: {}".format(value))
+            val = value.pop()
+            if val == '0':
+                Api.gate.lower()
+            elif val == '1':
+                Api.gate.lift()
+            else:
+                print("invalid gate command")
 
-    def write_gate_status(status_in_percent):
-        Api.gate.virtual_write(1, status_in_percent)
+    def write_gate_status(client, status_in_percent):
+        Api.blynk.virtual_write(7, status_in_percent)
 
     def elapse_5s(self):
         self.time += 5
