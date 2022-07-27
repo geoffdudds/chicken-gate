@@ -28,7 +28,7 @@ class Api:
                 print("invalid gate command")
 
     def write_gate_status(client, status_in_percent):
-        Api.blynk.virtual_write(7, status_in_percent)
+        Api.blynk.virtual_write(3, status_in_percent)
 
     def elapse_5s(self):
         self.time += 5
