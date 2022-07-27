@@ -17,15 +17,15 @@ class Gate:
 
     def lift(self):
         self.turn_cw()
-        #self.wait_until_raised()
-        #self.stop()
-        self.run_position_fbk_cb(100)
+        self.wait_until_raised()
+        self.stop()
+        #self.run_position_fbk_cb(100)
 
     def lower(self):
         self.turn_ccw()
-        #self.wait_until_lowered()
-        #self.stop()
-        self.run_position_fbk_cb(0)
+        self.wait_until_lowered()
+        self.stop()
+        #self.run_position_fbk_cb(0)
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
@@ -48,7 +48,7 @@ class Gate:
         lower_time = 30
         for t in range(lower_time):
             time.sleep(1)
-            self.run_position_fbk_cb((t - lower_time) / 30)
+            self.run_position_fbk_cb(((lower_time - t) / lower_time)*100)
 
     def run_position_fbk_cb(self, position):
         cb = self.gate_position_fbk_cb
