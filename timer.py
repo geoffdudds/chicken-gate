@@ -14,15 +14,15 @@ class Timer:
         if self.target != target:
             self.time = self.get_time()
             self.target = target
-            self.start_time = time.perf_counter
+            self.start_time = time.perf_counter()
 
     def is_at_target(self):
-        diff = time.perf_counter - self.start_time
+        diff = time.perf_counter() - self.start_time
         sp_change = self.target - self.time
         return abs(diff) > abs(sp_change)
 
     def get_time(self):
-        diff = time.perf_counter - self.start_time
+        diff = time.perf_counter() - self.start_time
         sp_change = self.target - self.time
         if sp_change > 0:
             diff = min(diff, sp_change)
