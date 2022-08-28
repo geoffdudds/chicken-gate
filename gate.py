@@ -60,6 +60,7 @@ class Gate:
         self.gate_timer.set_target(self.time_to_lift)
         if self.is_raised():
             self.stop()
+            print("list stop")
         else:
             self.turn_cw()
 
@@ -69,6 +70,7 @@ class Gate:
             self.stop()
         else:
             self.turn_ccw()
+            print("lower stop")
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
