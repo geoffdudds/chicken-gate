@@ -33,4 +33,5 @@ class Timer:
 
     def reset(self, time=0):
         self.time = time
+        self.start_time = 0
         self.target = time
