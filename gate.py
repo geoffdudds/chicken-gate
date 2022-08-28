@@ -95,5 +95,4 @@ class Gate:
     def run_position_fbk_cb(self):
         cb = self.gate_position_fbk_cb
         if cb is not None:
-            print(self.get_position())
             cb(self.get_position())
