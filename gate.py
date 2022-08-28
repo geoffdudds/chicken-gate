@@ -26,6 +26,7 @@ class Gate:
         self.gate_position_fbk_cb = gate_position_fbk_cb
 
     def process_inputs(self):
+        print("thread runs")
         if self.cmd is "lift":
             self.process_lift()
         elif self.cmd is "lower":
