@@ -82,8 +82,8 @@ class Gate:
         GPIO.output(17, GPIO.LOW)
 
     def is_raised(self):
-        # return self.switch.is_pressed() or self.get_position() == 100
-        return self.get_position() == 100
+        return self.switch.is_pressed or self.get_position() == 100
+        # return self.get_position() == 100
 
     def is_lowered(self):
         return self.get_position() == 0
