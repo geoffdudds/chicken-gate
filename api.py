@@ -9,7 +9,7 @@ class Api:
 
     def __init__(self, gate: Gate):
         Api.gate = gate
-        Api.gate.set_position_fbk_cbk(self.write_gate_status)
+        Api.gate.set_position_fbk_cb(self.write_gate_status)
         Api.blynk = BlynkLib.Blynk("3Ngd6Tdw9djI17trS1AfVY5aXfhlBwiz")
         self.time = 0
         self.timer = BlynkTimer()
@@ -20,9 +20,9 @@ class Api:
         def v0_gate_cmd_write_handler(value):
             print("V0 gate command: {}".format(value))
             val = value.pop()
-            if val == '0':
+            if val == "0":
                 Api.gate.lower()
-            elif val == '1':
+            elif val == "1":
                 Api.gate.lift()
             else:
                 print("invalid gate command")

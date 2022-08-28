@@ -2,6 +2,7 @@ from typing import Callable
 import RPi.GPIO as GPIO
 from gpiozero import Button
 import time
+import timer
 from threading import Thread
 
 
@@ -11,12 +12,17 @@ class Gate:
         GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
         GPIO.setup(4, GPIO.OUT)  # set Relay 1 output
         GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
+        self.time_to_lift = 30
         self.gate_position_fbk_cb = None
+        self.gate_position = 0
+        self.prev_position = 0
         self.cmd = None
+        self.gate_timer = timer.Timer()
+        self.position_update_timer = timer.Timer()
         self.cmd_thread = Thread(target=self.process_inputs)
         self.cmd_thread.start()
 
-    def set_position_fbk_cbk(self, gate_position_fbk_cb):
+    def set_position_fbk_cb(self, gate_position_fbk_cb):
         self.gate_position_fbk_cb = gate_position_fbk_cb
 
     def process_inputs(self):
@@ -25,6 +31,17 @@ class Gate:
         elif self.cmd is "lower":
             self.process_lower()
 
+        position = self.get_position()
+
+        if position != self.prev_position:
+            self.send_new_position_1hz()
+            self.prev_position = position
+
+    def send_new_position_1hz(self):
+        if self.position_update_timer.is_at_target():
+            self.position_update_timer.set_target(self.position_update_timer.time + 1)
+            self.run_position_fbk_cb()
+
     def lift(self):
         self.cmd = "lift"
 
@@ -32,14 +49,18 @@ class Gate:
         self.cmd = "lower"
 
     def process_lift(self):
-        self.turn_cw()
-        self.wait_until_raised()
-        self.stop()
+        self.gate_timer.set_target(self.time_to_lift)
+        if self.is_raised():
+            self.stop()
+        else:
+            self.turn_cw()
 
     def process_lower(self):
-        self.turn_ccw()
-        self.wait_until_lowered()
-        self.stop()
+        self.gate_timer.set_target(0)
+        if self.is_lowered():
+            self.stop()
+        else:
+            self.turn_ccw()
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
@@ -52,6 +73,15 @@ class Gate:
     def stop(self):
         GPIO.output(4, GPIO.LOW)
         GPIO.output(17, GPIO.LOW)
+
+    def is_raised(self):
+        return self.switch.is_pressed() or self.get_position() == 100
+
+    def is_lowered(self):
+        return self.gate_position == 0
+
+    def get_position(self):
+        return self.gate_timer.get_time() * 100 / self.time_to_lift
 
     def wait_until_raised(self):
         self.run_position_fbk_cb(50)
@@ -67,4 +97,4 @@ class Gate:
     def run_position_fbk_cb(self, position):
         cb = self.gate_position_fbk_cb
         if cb is not None:
-            cb(position)
+            cb(self.get_position())
