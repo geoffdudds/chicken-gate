@@ -94,7 +94,7 @@ class Gate:
     def get_position(self):
         return self.gate_timer.get_time() * 100 / self.time_to_lift
 
-    def run_position_fbk_cb(self, position):
+    def run_position_fbk_cb(self):
         cb = self.gate_position_fbk_cb
         if cb is not None:
             cb(self.get_position())
