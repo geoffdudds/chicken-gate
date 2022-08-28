@@ -19,7 +19,7 @@ class Gate:
         self.prev_position = 0
         self.cmd = None
         self.gate_timer = timer.Timer()
-        self.position_update_timer = timer.Timer()
+        self.update_timer = timer.Timer()
         self.cmd_thread = Thread(target=self.main)
         self.cmd_thread.start()
 
@@ -44,8 +44,9 @@ class Gate:
             self.prev_position = position
 
     def send_new_position_1hz(self):
-        if self.position_update_timer.is_at_target():
-            self.position_update_timer.set_target(self.position_update_timer.time + 1)
+        if self.update_timer.is_at_target():
+            self.update_timer.reset()
+            self.update_timer.set_target(1)
             self.run_position_fbk_cb()
 
     def lift(self):

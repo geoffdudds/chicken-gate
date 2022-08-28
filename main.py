@@ -5,8 +5,6 @@ from api import Api
 
 def main():
     gate = Gate()
-
-    # todo schedule cannot be blocking
     api = Api(gate)
     schedule = Schedule(gate)
 
