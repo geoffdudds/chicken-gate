@@ -31,7 +31,6 @@ class Gate:
             self.process_inputs()
 
     def process_inputs(self):
-        # print("thread runs")
         if self.cmd is "lift":
             self.process_lift()
         elif self.cmd is "lower":
@@ -40,15 +39,16 @@ class Gate:
         position = self.get_position()
 
         if position != self.prev_position:
-            self.send_new_position_1hz()
-            self.prev_position = position
+            if self.send_new_position_1hz():
+                self.prev_position = position
 
-    def send_new_position_1hz(self):
+    def send_new_position_1hz(self) -> bool:
         if self.update_timer.is_at_target():
-            print("send new posn")
             self.update_timer.reset()
             self.update_timer.set_target(1)
             self.run_position_fbk_cb()
+            return True
+        return False
 
     def lift(self):
         self.cmd = "lift"
@@ -60,19 +60,15 @@ class Gate:
         self.gate_timer.set_target(self.time_to_lift)
         if self.is_raised():
             self.stop()
-            # print("lift stop")
         else:
             self.turn_cw()
-            # print("lift cw")
 
     def process_lower(self):
         self.gate_timer.set_target(0)
         if self.is_lowered():
             self.stop()
-            # print("lower stop")
         else:
             self.turn_ccw()
-            # print("lower ccw")
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
