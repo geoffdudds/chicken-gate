@@ -52,15 +52,19 @@ class Gate:
         self.gate_timer.set_target(self.time_to_lift)
         if self.is_raised():
             self.stop()
+            print("lift stop")
         else:
             self.turn_cw()
+            print("lift cw")
 
     def process_lower(self):
         self.gate_timer.set_target(0)
         if self.is_lowered():
             self.stop()
+            print("lower stop")
         else:
             self.turn_ccw()
+            print("lower ccw")
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
@@ -82,17 +86,6 @@ class Gate:
 
     def get_position(self):
         return self.gate_timer.get_time() * 100 / self.time_to_lift
-
-    def wait_until_raised(self):
-        self.run_position_fbk_cb(50)
-        self.switch.wait_for_press()
-        self.run_position_fbk_cb(100)
-
-    def wait_until_lowered(self):
-        lower_time = 30
-        for t in range(lower_time):
-            time.sleep(1)
-            self.run_position_fbk_cb(((lower_time - t) / lower_time) * 100)
 
     def run_position_fbk_cb(self, position):
         cb = self.gate_position_fbk_cb
