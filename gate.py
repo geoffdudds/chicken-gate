@@ -1,3 +1,4 @@
+from operator import truediv
 from typing import Callable
 import RPi.GPIO as GPIO
 from gpiozero import Button
@@ -19,14 +20,18 @@ class Gate:
         self.cmd = None
         self.gate_timer = timer.Timer()
         self.position_update_timer = timer.Timer()
-        self.cmd_thread = Thread(target=self.process_inputs)
+        self.cmd_thread = Thread(target=self.main)
         self.cmd_thread.start()
 
     def set_position_fbk_cb(self, gate_position_fbk_cb):
         self.gate_position_fbk_cb = gate_position_fbk_cb
 
+    def main(self):
+        while True:
+            self.process_inputs()
+
     def process_inputs(self):
-        print("thread runs")
+        # print("thread runs")
         if self.cmd is "lift":
             self.process_lift()
         elif self.cmd is "lower":
@@ -53,19 +58,19 @@ class Gate:
         self.gate_timer.set_target(self.time_to_lift)
         if self.is_raised():
             self.stop()
-            print("lift stop")
+            # print("lift stop")
         else:
             self.turn_cw()
-            print("lift cw")
+            # print("lift cw")
 
     def process_lower(self):
         self.gate_timer.set_target(0)
         if self.is_lowered():
             self.stop()
-            print("lower stop")
+            # print("lower stop")
         else:
             self.turn_ccw()
-            print("lower ccw")
+            # print("lower ccw")
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
