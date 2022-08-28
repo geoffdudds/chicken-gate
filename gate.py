@@ -15,7 +15,6 @@ class Gate:
         GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
         self.time_to_lift = 30
         self.gate_position_fbk_cb = None
-        self.gate_position = 0
         self.prev_position = 0
         self.cmd = None
         self.gate_timer = timer.Timer()
@@ -60,7 +59,6 @@ class Gate:
         self.gate_timer.set_target(self.time_to_lift)
         if self.is_raised():
             self.stop()
-            print("list stop")
         else:
             self.turn_cw()
 
@@ -70,7 +68,6 @@ class Gate:
             self.stop()
         else:
             self.turn_ccw()
-            print("lower stop")
 
     def turn_cw(self):
         GPIO.output(4, GPIO.HIGH)
@@ -86,10 +83,10 @@ class Gate:
 
     def is_raised(self):
         # return self.switch.is_pressed() or self.get_position() == 100
-        return self.get_position == 100
+        return self.get_position() == 100
 
     def is_lowered(self):
-        return self.gate_position == 0
+        return self.get_position() == 0
 
     def get_position(self):
         return self.gate_timer.get_time() * 100 / self.time_to_lift
