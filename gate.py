@@ -45,6 +45,7 @@ class Gate:
 
     def send_new_position_1hz(self):
         if self.update_timer.is_at_target():
+            print("send new posn")
             self.update_timer.reset()
             self.update_timer.set_target(1)
             self.run_position_fbk_cb()
