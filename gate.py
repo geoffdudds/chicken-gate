@@ -84,10 +84,10 @@ class Gate:
     def is_raised(self):
         if self.switch.is_pressed:
             self.gate_timer.reset(100)
-        return self.gate_timer.is_at_target()
+        return self.get_position() == 100
 
     def is_lowered(self):
-        return self.gate_timer.is_at_target()
+        return self.get_position() == 0
 
     def get_position(self):
         return self.gate_timer.get_time() * 100 / self.time_to_lift
