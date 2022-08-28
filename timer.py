@@ -31,7 +31,6 @@ class Timer:
 
         return self.time + diff
 
-    def reset(self):
-        self.time = 0
-        self.start_time = 0
-        self.target = 0
+    def reset(self, time=0):
+        self.time = time
+        self.target = time
