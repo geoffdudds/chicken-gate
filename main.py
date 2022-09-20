@@ -1,6 +1,7 @@
 from gate import Gate
 from schedule import Schedule
 from api import Api
+import errno
 
 # import time
 
