@@ -33,6 +33,7 @@ class Api:
     def elapse_5s(self):
         self.time += 5
         self.blynk.virtual_write(2, self.time)
+        # print("time alive: " + str(self.time))
 
     def run(self):
         Api.blynk.run()
