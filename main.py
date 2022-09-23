@@ -6,6 +6,7 @@ from gate import Gate
 from schedule import Schedule
 from api import Api
 import errno
+import sys
 
 
 # from signal import signal, SIGPIPE, SIG_DFL
@@ -32,7 +33,8 @@ def main():
             api.run()
         except IOError as e:
             if e.errno == errno.EPIPE:
-                pass
+                print(e)
+                sys.exit()
 
 
 if __name__ == "__main__":
