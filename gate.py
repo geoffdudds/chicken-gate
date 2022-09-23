@@ -16,6 +16,7 @@ class Gate:
         self.time_to_lift = 30
         self.gate_position_fbk_cb = None
         self.prev_position = 0
+        self.is_moving = False
         self.cmd = None
         self.gate_timer = timer.Timer()
         self.update_timer = timer.Timer()
@@ -38,8 +39,17 @@ class Gate:
         position = self.get_position()
 
         if position != self.prev_position:
-            if self.send_new_position_1hz():
-                self.prev_position = position
+            self.is_moving = True
+        else:
+            if self.is_moving:
+                self.is_moving = False
+                self.run_position_fbk_cb()
+
+        self.prev_position = position
+
+        # if position != self.prev_position:
+        #     if self.send_new_position_1hz():
+        #         self.prev_position = position
 
     def send_new_position_1hz(self) -> bool:
         if self.update_timer.is_at_target():
