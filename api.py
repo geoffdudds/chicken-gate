@@ -11,9 +11,9 @@ class Api:
         Api.gate = gate
         Api.gate.set_position_fbk_cb(self.write_gate_status)
         Api.blynk = BlynkLib.Blynk("3Ngd6Tdw9djI17trS1AfVY5aXfhlBwiz")
-        self.time = 0
+        self.time_mins = 0
         self.timer = BlynkTimer()
-        self.timer.set_interval(5, self.elapse_5s)
+        self.timer.set_interval(60, self.elapse_5s)
 
         # Register Virtual Pins
         @Api.blynk.on("V0")
@@ -31,8 +31,8 @@ class Api:
         Api.blynk.virtual_write(3, status_in_percent)
 
     def elapse_5s(self):
-        self.time += 5
-        self.blynk.virtual_write(2, self.time)
+        self.time_mins += 1
+        self.blynk.virtual_write(2, self.time_mins)
         # print("time alive: " + str(self.time))
 
     def run(self):
