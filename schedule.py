@@ -29,9 +29,10 @@ class Schedule:
     def add_to_log(self, entry):
         now = datetime.now()
         time = now.strftime("%Y/%m/%d - %H:%M:%S")
-        with open("log.txt", "a+") as f:
-            f.write(time + ": " + entry)
-            f.write("\n")
+        print(time + ": " + entry)
+        # with open("log.txt", "a+") as f:
+        #     f.write(time + ": " + entry)
+        #     f.write("\n")
 
     def update_schedule(self):
         self.update_sunrise_sunset_times()
@@ -39,9 +40,9 @@ class Schedule:
         self.schedule_lower()
 
         self.sched.print_jobs()
-        with open("log.txt", "a") as f:
-            self.add_to_log("")
-            self.sched.print_jobs(out=f)
+        # with open("log.txt", "a") as f:
+        #     self.add_to_log("")
+        #     self.sched.print_jobs(out=f)
 
     def update_sunrise_sunset_times(self):
         latitude = 49.164379
@@ -58,11 +59,11 @@ class Schedule:
         self.sunset = sunset_utc.astimezone(to_zone)
 
     def lift(self):
-        self.add_to_log("Executing lift job...")
+        self.add_to_log("Executing scheduled lift job...")
         self.gate.lift()
 
     def lower(self):
-        self.add_to_log("Executing lower job...")
+        self.add_to_log("Executing scheduled lower job...")
         self.gate.lower()
 
     def schedule_lift(self):

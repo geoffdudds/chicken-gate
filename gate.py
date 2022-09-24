@@ -44,6 +44,7 @@ class Gate:
             if self.is_moving:
                 self.is_moving = False
                 self.run_position_fbk_cb()
+                print("Stopped at position: " + str(position) + "%")
 
         self.prev_position = position
 

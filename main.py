@@ -21,20 +21,20 @@ def main():
 
     # todo: init gate position at startup? Maybe schedule can do this?
 
-    # print("entry")
+    print("Started chicken gate")
     # timer = 0
 
     while True:
-        # print("time alive: " + str(timer))
-        # time.sleep(1)
-        # timer = timer + 1
-
         try:
             api.run()
         except IOError as e:
             if e.errno == errno.EPIPE:
+                print("Caught pipe error - restarting...")
                 print(e)
                 sys.exit()
+            else:
+                print("Caught unhandled exception - not restarting")
+                print(e)
 
 
 if __name__ == "__main__":
