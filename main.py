@@ -7,6 +7,7 @@ from schedule import Schedule
 from api import Api
 import errno
 import sys
+import email_me
 
 
 # from signal import signal, SIGPIPE, SIG_DFL
@@ -30,10 +31,12 @@ def main():
         except IOError as e:
             if e.errno == errno.EPIPE:
                 print("Caught pipe error - restarting...")
+                email_me.send_email("Pipe error")
                 print(e)
                 sys.exit()
             else:
                 print("Caught unhandled exception - not restarting")
+                email_me.send_email("Some other error")
                 print(e)
 
 
