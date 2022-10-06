@@ -27,9 +27,10 @@ class Schedule:
         self.sched.start()
 
     def add_to_log(self, entry):
-        now = datetime.now()
-        time = now.strftime("%Y/%m/%d - %H:%M:%S")
-        print(time + ": " + entry)
+        print(entry)
+        # now = datetime.now()
+        # time = now.strftime("%Y/%m/%d - %H:%M:%S")
+        # print(time + ": " + entry)
         # with open("log.txt", "a+") as f:
         #     f.write(time + ": " + entry)
         #     f.write("\n")
@@ -76,10 +77,6 @@ class Schedule:
             minute=self.sunset.minute,
         )
 
-        msg = "Gate scheduled to lift at {}".format(self.sunset.strftime("%H:%M"))
-        print(msg)
-        self.add_to_log(msg)
-
     def schedule_lower(self):
         if self.lower_job is not None:
             self.lower_job.remove()
@@ -89,7 +86,3 @@ class Schedule:
             hour=self.sunrise.hour,
             minute=self.sunrise.minute,
         )
-
-        msg = "Gate scheduled to lower at {}".format(self.sunrise.strftime("%H:%M"))
-        print(msg)
-        self.add_to_log(msg)
