@@ -3,6 +3,7 @@ from dateutil import tz
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from gate import Gate
+import sys
 import time
 
 
@@ -36,6 +37,8 @@ class Schedule:
         #     f.write("\n")
 
     def update_schedule(self):
+        # force program to restart. Required for blynk to keep working
+        sys.exit()
         self.update_sunrise_sunset_times()
         self.schedule_lift()
         self.schedule_lower()
