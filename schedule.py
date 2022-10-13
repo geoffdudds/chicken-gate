@@ -19,7 +19,7 @@ class Schedule:
         # create schedule, add job to update sunrise / sunset times, and start the scheduler
         self.sched = BackgroundScheduler()
         self.update_sched_job = self.sched.add_job(
-            func=self.update_schedule,
+            func=self.update_schedule_job,
             trigger="cron",
             hour=0,
             minute=0,
@@ -36,9 +36,12 @@ class Schedule:
         #     f.write(time + ": " + entry)
         #     f.write("\n")
 
-    def update_schedule(self):
+    def update_schedule_job(self):
         # force program to restart. Required for blynk to keep working
-        sys.exit()
+        sys.exit(1)
+        self.update_schedule()
+
+    def update_schedule(self):
         self.update_sunrise_sunset_times()
         self.schedule_lift()
         self.schedule_lower()
