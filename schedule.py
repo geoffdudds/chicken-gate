@@ -38,7 +38,7 @@ class Schedule:
 
     def update_schedule_job(self):
         # force program to restart. Required for blynk to keep working
-        sys.exit(1)
+        sys.exit(0)
         self.update_schedule()
 
     def update_schedule(self):

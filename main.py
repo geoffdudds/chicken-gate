@@ -33,11 +33,12 @@ def main():
                 print("Caught pipe error - restarting...")
                 email_me.send_email("Pipe error")
                 print(e)
-                sys.exit()
+                sys.exit(1)
             else:
                 print("Caught unhandled exception - not restarting")
                 email_me.send_email("Some other error")
                 print(e)
+                sys.exit(2)
 
 
 if __name__ == "__main__":
