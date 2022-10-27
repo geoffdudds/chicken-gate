@@ -15,13 +15,26 @@ class Gate:
         GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
         self.time_to_lift = 30
         self.gate_position_fbk_cb = None
-        self.prev_position = 0
         self.is_moving = False
-        self.cmd = None
         self.gate_timer = timer.Timer()
         self.update_timer = timer.Timer()
+        self.init_position()
+        self.init_cmd()
         self.cmd_thread = Thread(target=self.main)
         self.cmd_thread.start()
+
+    def init_position(self):
+        if self.switch.is_pressed:
+            self.gate_timer.reset(self.time_to_lift)
+        else:
+            self.gate_timer.reset(0)
+        self.prev_position = self.get_position()
+
+    def init_cmd(self):
+        if self.is_raised():
+            self.cmd = "lift"
+        else:
+            self.cmd = "lower"
 
     def set_position_fbk_cb(self, gate_position_fbk_cb):
         self.gate_position_fbk_cb = gate_position_fbk_cb
