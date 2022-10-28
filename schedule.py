@@ -4,6 +4,7 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from gate import Gate
 import sys
+import os
 import time
 
 
@@ -38,7 +39,8 @@ class Schedule:
 
     def update_schedule_job(self):
         # force program to restart. Required for blynk to keep working
-        sys.exit(3)
+        os.system("sudo systemctl restart chickengate.service")
+        # sys.exit(3)
         self.update_schedule()
 
     def update_schedule(self):
