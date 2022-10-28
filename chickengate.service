@@ -4,9 +4,6 @@ After=multi-user.target network-online.target
 Wants=network-online.target
 
 [Service]
-#StandardOutput=file:/home/pi/sw/chicken-gate/std.log
-#StandardError=file:/home/pi/sw/chicken-gate/err.log
-
 Type=idle
 WorkingDirectory=/home/pi/sw/chicken-gate
 VIRTUAL_ENV=/home/pi/sw/chicken-gate/.env
