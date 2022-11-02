@@ -40,7 +40,7 @@ class Schedule:
     def update_schedule_job(self):
         # force program to restart. Required for blynk to keep working
         # os.system("systemctl restart chickengate.service")
-        os.system("reboot")
+        os.system("/usr/sbin/reboot")
         # sys.exit(3)
         self.update_schedule()
 
