@@ -51,19 +51,19 @@ class Gate:
 
         position = self.get_position()
 
-        if position != self.prev_position:
-            self.is_moving = True
-        else:
-            if self.is_moving:
-                self.is_moving = False
-                self.run_position_fbk_cb()
-                print("Stopped at position: " + str(position) + "%")
-
-        self.prev_position = position
-
         # if position != self.prev_position:
-        #     if self.send_new_position_1hz():
-        #         self.prev_position = position
+        #     self.is_moving = True
+        # else:
+        #     if self.is_moving:
+        #         self.is_moving = False
+        #         self.run_position_fbk_cb()
+        #         print("Stopped at position: " + str(position) + "%")
+
+        # self.prev_position = position
+
+        if position != self.prev_position:
+            if self.send_new_position_1hz():
+                self.prev_position = position
 
     def send_new_position_1hz(self) -> bool:
         if self.update_timer.is_at_target():
