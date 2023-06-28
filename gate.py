@@ -32,6 +32,10 @@ class Gate:
         self.gate_timer.reset(self.time_to_lift)
         self.prev_position = self.get_position()
 
+    def reset(self, position):
+        self.gate_timer.reset(position * self.time_to_lift / 100)
+        self.prev_position = self.get_position()
+
     def init_cmd(self):
         if self.is_raised():
             self.cmd = "lift"

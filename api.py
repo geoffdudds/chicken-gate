@@ -28,6 +28,17 @@ class Api:
             else:
                 print("invalid gate command")
 
+        @Api.blynk.on("V1")
+        def v0_gate_cmd_write_handler(value):
+            print("V1 reset command: {}".format(value))
+            val = value.pop()
+            if val == "0":
+                Api.gate.reset(0)
+            elif val == "1":
+                Api.gate.reset(100)
+            else:
+                print("invalid gate command")
+
     def write_gate_status(client, status_in_percent):
         Api.blynk.virtual_write(3, status_in_percent)
 
