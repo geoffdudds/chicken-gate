@@ -13,7 +13,7 @@ class Gate:
         GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
         GPIO.setup(4, GPIO.OUT)  # set Relay 1 output
         GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
-        self.time_to_lift = 30
+        self.time_to_lift = 400
         self.gate_position_fbk_cb = None
         self.is_moving = False
         self.gate_timer = timer.Timer()
@@ -24,10 +24,12 @@ class Gate:
         self.cmd_thread.start()
 
     def init_position(self):
-        if self.switch.is_pressed:
-            self.gate_timer.reset(self.time_to_lift)
-        else:
-            self.gate_timer.reset(0)
+        # todo: init position better once switch is in
+        # if self.switch.is_pressed:
+        #     self.gate_timer.reset(self.time_to_lift)
+        # else:
+        #     self.gate_timer.reset(0)
+        self.gate_timer.reset(self.time_to_lift)
         self.prev_position = self.get_position()
 
     def init_cmd(self):
@@ -89,6 +91,7 @@ class Gate:
     def process_lower(self):
         self.gate_timer.set_target(0)
         if self.is_lowered():
+            self.gate_timer.reset(0)
             self.stop()
         else:
             self.turn_ccw()
@@ -106,12 +109,13 @@ class Gate:
         GPIO.output(17, GPIO.LOW)
 
     def is_raised(self):
-        if self.switch.is_pressed:
-            self.gate_timer.reset(self.time_to_lift)
+        # todo: add once switch is in
+        # if self.switch.is_pressed:
+        #     self.gate_timer.reset(self.time_to_lift)
         return self.get_position() == 100
 
     def is_lowered(self):
-        return self.get_position() == 0
+        return self.get_position() < 15
 
     def get_position(self):
         return self.gate_timer.get_time() * 100 / self.time_to_lift
