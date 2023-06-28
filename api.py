@@ -37,7 +37,7 @@ class Api:
             elif val == "1":
                 Api.gate.reset(100)
             else:
-                print("invalid gate command")
+                print("invalid reset command")
 
     def write_gate_status(client, status_in_percent):
         Api.blynk.virtual_write(3, status_in_percent)
