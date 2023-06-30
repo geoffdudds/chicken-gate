@@ -1,6 +1,7 @@
 from suntime import Sun
 from dateutil import tz
 from datetime import datetime
+from datetime import timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from gate import Gate
 import os
@@ -74,6 +75,7 @@ class Schedule:
         self.gate.lower()
 
     def schedule_lift(self):
+        lift_time = self.sunset + timedelta(minutes=30)
         if self.lift_job is not None:
             self.lift_job.remove()
         self.lift_job = self.sched.add_job(
