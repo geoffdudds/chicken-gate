@@ -81,8 +81,8 @@ class Schedule:
         self.lift_job = self.sched.add_job(
             func=self.lift,
             trigger="cron",
-            hour=self.sunset.hour,
-            minute=self.sunset.minute,
+            hour=lift_time.hour,
+            minute=lift_time.minute,
         )
 
     def schedule_lower(self):
