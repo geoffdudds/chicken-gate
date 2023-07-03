@@ -1,37 +1,26 @@
-import time
-from threading import Thread
+import time as tm
 
 
 class Timer:
     def __init__(self):
-        self.time = 0
-        self.start_time = 0
-        self.target = 0
-        # self.timer_thread = Thread(target=self.main)
-        # self.cmd_thread.start()
+        self.__start_time = None
+        self.__last_read = None
 
-    def set_target(self, target):
-        if self.target != target:
-            self.time = self.get_time()
-            self.target = target
-            self.start_time = time.perf_counter()
-
-    def is_at_target(self):
-        diff = time.perf_counter() - self.start_time
-        sp_change = self.target - self.time
-        return abs(diff) > abs(sp_change)
+    def start(self):
+        now = tm.perf_counter()
+        self.__start_time = now
+        self.__last_read = now
 
     def get_time(self):
-        diff = time.perf_counter() - self.start_time
-        sp_change = self.target - self.time
-        if sp_change > 0:
-            diff = min(diff, sp_change)
-        else:
-            diff = max(-diff, sp_change)
+        now = tm.perf_counter()
+        self.__last_read = now
+        return now - self.__start_time
 
-        return self.time + diff
+    def has_elapsed(self, time):
+        return (tm.perf_counter() - self.__start_time) > time
 
-    def reset(self, time=0):
-        self.time = time
-        self.start_time = 0
-        self.target = time
+    def get_since_last_read(self):
+        now = tm.perf_counter()
+        time_since_last_read = now - self.__last_read
+        self.__last_read = now
+        return time_since_last_read

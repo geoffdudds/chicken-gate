@@ -1,21 +1,25 @@
 import BlynkLib
 from BlynkTimer import BlynkTimer
 from gate import Gate
-from schedule import Schedule
+from enum import Enum
 
 
 class Api:
-    gate: Gate = None
+    class Cmd(Enum):
+        STOP = 0
+        CLOSE = 1
+        OPEN = 2
+        NONE = 3
+
     blynk: BlynkLib.Blynk = None
 
-    def __init__(self, gate: Gate, schedule: Schedule):
+    def __init__(self):
         Api.blynk = BlynkLib.Blynk("3Ngd6Tdw9djI17trS1AfVY5aXfhlBwiz")
-        Api.schedule = schedule
-        Api.gate = gate
-        Api.gate.set_position_fbk_cb(self.write_gate_status)
-        Api.gate.run_position_fbk_cb()
         self.timer = BlynkTimer()
-        self.timer.set_interval(60, self.elapse_60s)
+        self.timer.set_interval(1, self.elapse_1s)
+        self.__posn = 0
+        self.__posn_reset = None
+        self.__cmd = Api.Cmd.NONE
 
         # Register Virtual Pins
         @Api.blynk.on("V0")
@@ -23,29 +27,39 @@ class Api:
             print("V0 gate command: {}".format(value))
             val = value.pop()
             if val == "0":
-                Api.gate.lower()
+                self.__cmd = self.Cmd.OPEN
             elif val == "1":
-                Api.gate.lift()
+                self.__cmd = self.Cmd.CLOSE
             else:
                 print("invalid gate command")
 
         @Api.blynk.on("V1")
-        def v0_gate_cmd_write_handler(value):
+        def v1_gate_cmd_write_handler(value):
             print("V1 reset command: {}".format(value))
             val = value.pop()
             if val == "0":
-                Api.gate.reset(0)
+                self.__posn_reset = 0
             elif val == "1":
-                Api.gate.reset(100)
+                self.__posn_reset = 100
             else:
                 print("invalid reset command")
 
-    def write_gate_status(client, status_in_percent):
-        Api.blynk.virtual_write(3, status_in_percent)
+    def set_posn(self, posn):
+        self.__posn = posn
 
-    def elapse_60s(self):
-        self.blynk.virtual_write(2, self.time_mins)
-        self.blynk.v
+    def elapse_1s(self):
+        # update gate position
+        Api.blynk.virtual_write(3, self.__posn)
+
+    def get_posn_reset(self):
+        posn_reset = self.__posn_reset
+        self.__posn_reset = None
+        return posn_reset
+
+    def get_cmd(self):
+        cmd = self.__cmd
+        self.__cmd = self.Cmd.NONE
+        return cmd
 
     @blynk.on("V2")
     def v2_write_handler(value):
