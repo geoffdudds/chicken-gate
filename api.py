@@ -1,20 +1,21 @@
 import BlynkLib
 from BlynkTimer import BlynkTimer
 from gate import Gate
+from schedule import Schedule
 
 
 class Api:
     gate: Gate = None
     blynk: BlynkLib.Blynk = None
 
-    def __init__(self, gate: Gate):
+    def __init__(self, gate: Gate, schedule: Schedule):
         Api.blynk = BlynkLib.Blynk("3Ngd6Tdw9djI17trS1AfVY5aXfhlBwiz")
+        Api.schedule = schedule
         Api.gate = gate
         Api.gate.set_position_fbk_cb(self.write_gate_status)
         Api.gate.run_position_fbk_cb()
-        self.time_mins = 0
         self.timer = BlynkTimer()
-        self.timer.set_interval(60, self.elapse_5s)
+        self.timer.set_interval(60, self.elapse_60s)
 
         # Register Virtual Pins
         @Api.blynk.on("V0")
@@ -42,10 +43,13 @@ class Api:
     def write_gate_status(client, status_in_percent):
         Api.blynk.virtual_write(3, status_in_percent)
 
-    def elapse_5s(self):
-        self.time_mins += 1
+    def elapse_60s(self):
         self.blynk.virtual_write(2, self.time_mins)
-        # print("time alive: " + str(self.time))
+        self.blynk.v
+
+    @blynk.on("V2")
+    def v2_write_handler(value):
+        pass
 
     def run(self):
         Api.blynk.run()
