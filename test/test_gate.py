@@ -1,4 +1,5 @@
 from src.gate import Gate
+from src.gate_cmd import Cmd
 import time
 
 
@@ -27,10 +28,10 @@ def test_lowers_until_timeout():
     elapsed_time = 0
     while elapsed_time < open_time - 0.1:
         gate.tick()
-        assert gate.get_cmd() == gate.Cmd.OPEN
+        assert gate.get_cmd() == Cmd.OPEN
         elapsed_time += 0.1
     gate.tick(elapsed_time=0.2)
-    assert gate.get_cmd() == gate.Cmd.STOP
+    assert gate.get_cmd() == Cmd.STOP
 
 
 def test_closes_until_timeout():
@@ -42,10 +43,10 @@ def test_closes_until_timeout():
     elapsed_time = 0
     while elapsed_time < close_time - 0.1:
         gate.tick()
-        assert gate.get_cmd() == gate.Cmd.CLOSE
+        assert gate.get_cmd() == Cmd.CLOSE
         elapsed_time += 0.1
     gate.tick(elapsed_time=0.2)
-    assert gate.get_cmd() == gate.Cmd.STOP
+    assert gate.get_cmd() == Cmd.STOP
 
 
 def test_reset_position():

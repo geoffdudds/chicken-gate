@@ -1,50 +1,55 @@
+from gate_cmd import Cmd
 from suntime import Sun
 from dateutil import tz
 from datetime import datetime
 from datetime import timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
-from gate import Gate
 import os
 
 
 class Schedule:
-    def __init__(self, gate: Gate):
-        self.sunrise = None
-        self.sunset = None
-        self.lift_job = None
-        self.lower_job = None
-        self.gate = gate
-        self.add_to_log("Program started")
+    def __init__(self):
+        self.__sunrise = None
+        self.__sunset = None
+        self.__lift_job = None
+        self.__lower_job = None
+        self.gate_cmd = Cmd.NONE
+        self.__add_to_log("Program started")
 
         # create schedule, add job to update sunrise / sunset times, and start the scheduler
-        self.sched = BackgroundScheduler()
-        self.update_sched_job = self.sched.add_job(
-            func=self.update_schedule_job,
+        self.__sched = BackgroundScheduler()
+        self.__update_sched_job = self.__sched.add_job(
+            func=self.__restart_service,
             trigger="cron",
             replace_existing=True,
             id=0,
             hour=0,
             minute=0,
         )
-        self.update_schedule()
-        self.sched.start()
+        self.__update_schedule()
+        self.__sched.start()
 
-    def add_to_log(self, entry):
+    def get_gate_cmd(self):
+        gate_cmd = self.gate_cmd
+        self.gate_cmd = None
+        return gate_cmd
+
+    def __add_to_log(self, entry):
         print(entry)
 
-    def update_schedule_job(self):
-        # Restart service. Required for blynk to keep working
+    def __restart_service(self):
+        # required for blynk to keep working
         os.system("/usr/bin/systemctl restart chickengate.service")
-        self.update_schedule()
+        # self.__update_schedule()
 
-    def update_schedule(self):
-        self.update_sunrise_sunset_times()
-        self.schedule_lift()
-        self.schedule_lower()
+    def __update_schedule(self):
+        self.__update_sunrise_sunset_times()
+        self.__schedule_lift()
+        self.__schedule_lower()
 
-        self.sched.print_jobs()
+        self.__sched.print_jobs()
 
-    def update_sunrise_sunset_times(self):
+    def __update_sunrise_sunset_times(self):
         latitude = 49.164379
         longitude = -123.936661
         sun = Sun(latitude, longitude)
@@ -52,41 +57,41 @@ class Schedule:
 
         # get sunrise time
         sunrise_utc = sun.get_sunrise_time()
-        self.sunrise = sunrise_utc.astimezone(to_zone)
+        self.__sunrise = sunrise_utc.astimezone(to_zone)
 
         # repeat for sunset time
         sunset_utc = sun.get_sunset_time()
-        self.sunset = sunset_utc.astimezone(to_zone)
+        self.__sunset = sunset_utc.astimezone(to_zone)
 
     def lift(self):
-        self.add_to_log("Executing scheduled lift job...")
-        self.gate.lift()
+        self.__add_to_log("Executing scheduled lift job...")
+        self.gate_cmd = Cmd.CLOSE
 
     def lower(self):
-        self.add_to_log("Executing scheduled lower job...")
-        self.gate.lower()
+        self.__add_to_log("Executing scheduled lower job...")
+        self.gate_cmd = Cmd.OPEN
 
-    def schedule_lift(self):
-        lift_time = self.sunset + timedelta(minutes=30)
-        if self.lift_job is not None:
-            self.lift_job.remove()
-        self.lift_job = self.sched.add_job(
+    def __schedule_lift(self):
+        lift_time = self.__sunset + timedelta(minutes=30)
+        if self.__lift_job is not None:
+            self.__lift_job.remove()
+        self.__lift_job = self.__sched.add_job(
             func=self.lift,
             trigger="cron",
             replace_existing=True,
             id=1,
-            hour=self.sunset.hour,
-            minute=self.sunset.minute,
+            hour=lift_time.hour,
+            minute=lift_time.minute,
         )
 
-    def schedule_lower(self):
-        if self.lower_job is not None:
-            self.lower_job.remove()
-        self.lower_job = self.sched.add_job(
+    def __schedule_lower(self):
+        if self.__lower_job is not None:
+            self.__lower_job.remove()
+        self.__lower_job = self.__sched.add_job(
             func=self.lower,
             trigger="cron",
             replace_existing=True,
             id=2,
-            hour=self.sunrise.hour,
-            minute=self.sunrise.minute,
+            hour=self.__sunrise.hour,
+            minute=self.__sunrise.minute,
         )

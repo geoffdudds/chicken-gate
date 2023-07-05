@@ -4,8 +4,9 @@ time.sleep(60)
 
 from gate import Gate
 from schedule import Schedule
-from api import Api
+from src.api import Api
 from gate_drv import Gate_drv
+from src.gate_cmd import Cmd
 import errno
 import email_me
 
@@ -23,8 +24,8 @@ def elapse_100ms():
 
 def main():
     gate = Gate()
-    api = Api(gate)
-    schedule = Schedule(gate)
+    api = Api()
+    schedule = Schedule()
     gate_drv = Gate_drv()
 
     threading.Timer(0.1, elapse_100ms).start()
@@ -39,18 +40,20 @@ def main():
                 # push api commands to driver
                 gate_drv.reset_posn_to(api.get_posn_reset())
                 api_cmd = api.get_cmd()
-                if api_cmd == api.Cmd.OPEN:
+                if api_cmd == Cmd.OPEN:
                     gate_drv.open()
-                elif api_cmd == api.Cmd.CLOSE:
+                elif api_cmd == Cmd.CLOSE:
                     gate_drv.close()
 
-                # todo: make the command an enum class on its on in a file
-                # todo: remove more threads? consider mutexes?
-                # note: will need separate thread for schedule
-                # next: make into one thread then test manual
+                # push api commands to driver
+                sched_cmd = schedule.get_gate_cmd()
+                if sched_cmd == Cmd.OPEN:
+                    gate_drv.open()
+                elif sched_cmd == Cmd.CLOSE:
+                    gate_drv.close()
 
                 gate_drv.tick()
-                api.set_position(gate_drv.get_posn())
+                api.set_posn(gate_drv.get_posn())
 
         except IOError as e:
             if e.errno == errno.EPIPE:

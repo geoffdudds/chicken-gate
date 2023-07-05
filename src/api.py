@@ -2,15 +2,10 @@ import BlynkLib
 from BlynkTimer import BlynkTimer
 from gate import Gate
 from enum import Enum
+from gate_cmd import Cmd
 
 
 class Api:
-    class Cmd(Enum):
-        STOP = 0
-        CLOSE = 1
-        OPEN = 2
-        NONE = 3
-
     blynk: BlynkLib.Blynk = None
 
     def __init__(self):
@@ -19,7 +14,7 @@ class Api:
         self.timer.set_interval(1, self.elapse_1s)
         self.__posn = 0
         self.__posn_reset = None
-        self.__cmd = Api.Cmd.NONE
+        self.__cmd = Cmd.NONE
 
         # Register Virtual Pins
         @Api.blynk.on("V0")
@@ -27,9 +22,9 @@ class Api:
             print("V0 gate command: {}".format(value))
             val = value.pop()
             if val == "0":
-                self.__cmd = self.Cmd.OPEN
+                self.__cmd = Cmd.OPEN
             elif val == "1":
-                self.__cmd = self.Cmd.CLOSE
+                self.__cmd = Cmd.CLOSE
             else:
                 print("invalid gate command")
 
@@ -58,7 +53,7 @@ class Api:
 
     def get_cmd(self):
         cmd = self.__cmd
-        self.__cmd = self.Cmd.NONE
+        self.__cmd = Cmd.NONE
         return cmd
 
     @blynk.on("V2")
