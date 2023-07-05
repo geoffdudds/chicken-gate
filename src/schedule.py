@@ -21,6 +21,8 @@ class Schedule:
         self.update_sched_job = self.sched.add_job(
             func=self.update_schedule_job,
             trigger="cron",
+            replace_existing=True,
+            id=0,
             hour=0,
             minute=0,
         )
@@ -29,16 +31,9 @@ class Schedule:
 
     def add_to_log(self, entry):
         print(entry)
-        # now = datetime.now()
-        # time = now.strftime("%Y/%m/%d - %H:%M:%S")
-        # print(time + ": " + entry)
-        # with open("log.txt", "a+") as f:
-        #     f.write(time + ": " + entry)
-        #     f.write("\n")
 
     def update_schedule_job(self):
-        # force program to restart. Required for blynk to keep working
-        # os.system("/usr/sbin/reboot")
+        # Restart service. Required for blynk to keep working
         os.system("/usr/bin/systemctl restart chickengate.service")
         self.update_schedule()
 
@@ -48,9 +43,6 @@ class Schedule:
         self.schedule_lower()
 
         self.sched.print_jobs()
-        # with open("log.txt", "a") as f:
-        #     self.add_to_log("")
-        #     self.sched.print_jobs(out=f)
 
     def update_sunrise_sunset_times(self):
         latitude = 49.164379
@@ -81,6 +73,8 @@ class Schedule:
         self.lift_job = self.sched.add_job(
             func=self.lift,
             trigger="cron",
+            replace_existing=True,
+            id=1,
             hour=self.sunset.hour,
             minute=self.sunset.minute,
         )
@@ -91,6 +85,8 @@ class Schedule:
         self.lower_job = self.sched.add_job(
             func=self.lower,
             trigger="cron",
+            replace_existing=True,
+            id=2,
             hour=self.sunrise.hour,
             minute=self.sunrise.minute,
         )
