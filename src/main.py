@@ -23,6 +23,7 @@ def elapse_100ms():
 
 
 def main():
+    global tick_100ms
     gate = Gate()
     gate_drv = Gate_drv(gate)
     api = Api()
@@ -36,7 +37,9 @@ def main():
         try:
             api.run()
 
-            while elapse_100ms > 0:
+            while tick_100ms > 0:
+                tick_100ms -= 1
+                
                 # push api commands to driver
                 gate_drv.reset_posn_to(api.get_posn_reset())
                 api_cmd = api.get_cmd()
