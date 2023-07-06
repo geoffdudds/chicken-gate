@@ -28,7 +28,7 @@ class Api:
                 print("invalid gate command")
 
         @Api.blynk.on("V1")
-        def v1_gate_cmd_write_handler(value):
+        def v1_gate_reset_write_handler(value):
             print("V1 reset command: {}".format(value))
             val = value.pop()
             if val == "0":
@@ -56,10 +56,6 @@ class Api:
         cmd = self.__cmd
         self.__cmd = Cmd.NONE
         return cmd
-
-    @blynk.on("V2")
-    def v2_write_handler(value):
-        pass
 
     def run(self):
         Api.blynk.run()
