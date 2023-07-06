@@ -1,6 +1,6 @@
 import BlynkLib
 from BlynkTimer import BlynkTimer
-from src.gate_cmd import Cmd
+from gate_cmd import Cmd
 
 
 class Api:

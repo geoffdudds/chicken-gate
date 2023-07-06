@@ -1,4 +1,4 @@
-from src.gate_cmd import Cmd
+from gate_cmd import Cmd
 
 
 class Gate:

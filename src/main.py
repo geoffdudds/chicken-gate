@@ -2,13 +2,13 @@ import time, threading
 
 time.sleep(60)
 
-from src.gate import Gate
+from gate import Gate
 from schedule import Schedule
-from src.api import Api
-from src.gate_drv import Gate_drv
-from src.gate_cmd import Cmd
+from api import Api
+from gate_drv import Gate_drv
+from gate_cmd import Cmd
 import errno
-from src.email_me import send_email
+from email_me import send_email
 
 
 # from signal import signal, SIGPIPE, SIG_DFL
