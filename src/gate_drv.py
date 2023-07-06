@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 from gpiozero import Button
 from gate import Gate
+from gate_cmd import Cmd
 
 
 class Gate_drv:
@@ -12,7 +13,7 @@ class Gate_drv:
         GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
 
         self.gate = gate
-        self.cmd = Gate.Cmd.STOP
+        self.cmd = Cmd.STOP
 
     def tick(self):
         # set gate inputs
@@ -28,9 +29,9 @@ class Gate_drv:
         self.cmd = self.gate.get_cmd()
 
         # drive gate according to gate output
-        if self.cmd == Gate.Cmd.OPEN:
+        if self.cmd == Cmd.OPEN:
             self.__turn_cw()
-        elif self.cmd == Gate.Cmd.CLOSE:
+        elif self.cmd == Cmd.CLOSE:
             self.__turn_ccw()
         else:
             self.__stop()
