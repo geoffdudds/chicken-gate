@@ -6,9 +6,9 @@ Wants=network-online.target
 [Service]
 Type=idle
 WorkingDirectory=/home/pi/sw/chicken-gate
-VIRTUAL_ENV=/home/pi/sw/chicken-gate/.env
+VIRTUAL_ENV=/home/pi/sw/chicken-gate/.venv
 Environment=PATH=$VIRTUAL_ENV/bin:$PATH
-ExecStart=/home/pi/sw/chicken-gate/.env/bin/python3 -u main.py
+ExecStart=/home/pi/sw/chicken-gate/.venv/bin/python3 -u src/main.py
 Restart=always
 RestartSec=5s
 
