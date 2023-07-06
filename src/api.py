@@ -13,6 +13,7 @@ class Api:
         self.timer = BlynkTimer()
         self.timer.set_interval(1, self.elapse_1s)
         self.__posn = 0
+        self.__prev_posn = 0
         self.__posn_reset = None
         self.__cmd = Cmd.NONE
 
@@ -43,8 +44,10 @@ class Api:
         self.__posn = posn
 
     def elapse_1s(self):
-        # update gate position
-        Api.blynk.virtual_write(3, self.__posn)
+        # update gate position (if changed)
+        if self.__posn != self.__prev_posn:
+            Api.blynk.virtual_write(3, self.__posn)
+            self.__prev_posn = self.__posn
 
     def get_posn_reset(self):
         posn_reset = self.__posn_reset
