@@ -1,7 +1,6 @@
 from gate_cmd import Cmd
 from suntime import Sun
 from dateutil import tz
-from datetime import datetime
 from datetime import timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
@@ -22,7 +21,7 @@ class Schedule:
             func=self.__restart_service,
             trigger="cron",
             replace_existing=True,
-            id=0,
+            id="0",
             hour=0,
             minute=0,
         )
@@ -79,7 +78,7 @@ class Schedule:
             func=self.lift,
             trigger="cron",
             replace_existing=True,
-            id=1,
+            id="1",
             hour=lift_time.hour,
             minute=lift_time.minute,
         )
@@ -91,7 +90,7 @@ class Schedule:
             func=self.lower,
             trigger="cron",
             replace_existing=True,
-            id=2,
+            id="2",
             hour=self.__sunrise.hour,
             minute=self.__sunrise.minute,
         )
