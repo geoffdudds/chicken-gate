@@ -1,10 +1,3 @@
-# from operator import truediv
-# from typing import Callable
-
-# import time
-# from threading import Thread
-from src.timer import Timer
-from enum import Enum
 from src.gate_cmd import Cmd
 
 

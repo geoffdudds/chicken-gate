@@ -2,13 +2,13 @@ import time, threading
 
 time.sleep(60)
 
-from gate import Gate
+from src.gate import Gate
 from schedule import Schedule
 from src.api import Api
-from gate_drv import Gate_drv
+from src.gate_drv import Gate_drv
 from src.gate_cmd import Cmd
 import errno
-import email_me
+from src.email_me import send_email
 
 
 # from signal import signal, SIGPIPE, SIG_DFL
@@ -58,11 +58,11 @@ def main():
         except IOError as e:
             if e.errno == errno.EPIPE:
                 print("Caught pipe error - restarting...")
-                email_me.send_email("Pipe error")
+                send_email("Pipe error")
                 print(e)
             else:
                 print("Caught unhandled exception - not restarting")
-                email_me.send_email("Some other error")
+                send_email("Some other error")
                 print(e)
 
 

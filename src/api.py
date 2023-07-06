@@ -1,8 +1,6 @@
 import BlynkLib
 from BlynkTimer import BlynkTimer
-from gate import Gate
-from enum import Enum
-from gate_cmd import Cmd
+from src.gate_cmd import Cmd
 
 
 class Api:
