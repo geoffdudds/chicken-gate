@@ -24,9 +24,9 @@ def elapse_100ms():
 
 def main():
     gate = Gate()
+    gate_drv = Gate_drv(gate)
     api = Api()
     schedule = Schedule()
-    gate_drv = Gate_drv()
 
     threading.Timer(0.1, elapse_100ms).start()
 
