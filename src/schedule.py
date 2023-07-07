@@ -43,8 +43,8 @@ class Schedule:
 
     def __update_schedule(self):
         self.__update_sunrise_sunset_times()
-        self.__schedule_lift()
-        self.__schedule_lower()
+        self.__schedule_close()
+        self.__schedule_open()
 
         self.__sched.print_jobs()
 
@@ -62,20 +62,20 @@ class Schedule:
         sunset_utc = sun.get_sunset_time()
         self.__sunset = sunset_utc.astimezone(to_zone)
 
-    def lift(self):
-        self.__add_to_log("Executing scheduled lift job...")
+    def __close(self):
+        self.__add_to_log("Executing scheduled close job...")
         self.gate_cmd = Cmd.CLOSE
 
-    def lower(self):
-        self.__add_to_log("Executing scheduled lower job...")
+    def __open(self):
+        self.__add_to_log("Executing scheduled open job...")
         self.gate_cmd = Cmd.OPEN
 
-    def __schedule_lift(self):
+    def __schedule_close(self):
         lift_time = self.__sunset + timedelta(minutes=30)
         if self.__lift_job is not None:
             self.__lift_job.remove()
         self.__lift_job = self.__sched.add_job(
-            func=self.lift,
+            func=self.__close,
             trigger="cron",
             replace_existing=True,
             id="1",
@@ -83,11 +83,11 @@ class Schedule:
             minute=lift_time.minute,
         )
 
-    def __schedule_lower(self):
+    def __schedule_open(self):
         if self.__lower_job is not None:
             self.__lower_job.remove()
         self.__lower_job = self.__sched.add_job(
-            func=self.lower,
+            func=self.__open,
             trigger="cron",
             replace_existing=True,
             id="2",
