@@ -55,6 +55,7 @@ class Gate:
 
     def reset_posn_to(self, posn):
         self.__posn = Gate.__clamp(posn, 0, 100)
+        self.__posn_cmd=self.__posn
 
     def __clamp(n, min, max):
         if n < min:
