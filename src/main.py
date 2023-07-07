@@ -1,3 +1,10 @@
+"""
+todo: make the reset gate position use the enum instead of interger
+todo: update the gate cmd button when the reset button is pressed
+todo: update the gate cmd button when a scheduled cmd is executed
+"""
+
+
 import time, threading
 
 time.sleep(60)
