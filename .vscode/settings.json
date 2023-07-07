@@ -1,5 +1,6 @@
 {
     "python.formatting.provider": "none",
+    "python.formatting.provider": "none",
     "python.testing.pytestArgs": [
         "test"
     ],

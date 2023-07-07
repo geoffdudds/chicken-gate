@@ -3,3 +3,4 @@ apscheduler
 RPi.GPIO
 gpiozero
 blynk-library-python
+toml
