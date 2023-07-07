@@ -41,6 +41,7 @@ class Gate_drv:
 
     def reset_posn_to(self, posn):
         if posn != None:
+            print(f"position reset to {posn}")
             self.gate.reset_posn_to(posn)
 
     def open(self):

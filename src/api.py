@@ -43,6 +43,7 @@ class Api:
 
     def elapse_1s(self):
         # update gate position (if changed)
+        print(f"position fbk: {self.__posn}")
         if self.__posn != self.__prev_posn:
             Api.blynk.virtual_write(3, self.__posn)
             self.__prev_posn = self.__posn

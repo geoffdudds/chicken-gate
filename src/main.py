@@ -15,11 +15,17 @@ from email_me import send_email
 # signal(SIGPIPE,SIG_DFL)
 
 tick_100ms = 0
+tick_sum = 0
 
 
 def elapse_100ms():
     global tick_100ms
+    global tick_sum
     tick_100ms += 1
+    tick_sum += 1
+    if tick_sum > 10:
+        print("1s elapsed in main tick")
+        tick_sum = 0
 
 
 def main():
@@ -44,15 +50,19 @@ def main():
                 gate_drv.reset_posn_to(api.get_posn_reset())
                 api_cmd = api.get_cmd()
                 if api_cmd == Cmd.OPEN:
+                    print("app cmd to open gate")
                     gate_drv.open()
                 elif api_cmd == Cmd.CLOSE:
+                    print("app cmd to close gate")
                     gate_drv.close()
 
                 # push api commands to driver
                 sched_cmd = schedule.get_gate_cmd()
                 if sched_cmd == Cmd.OPEN:
+                    print("sched cmd to open gate")
                     gate_drv.open()
                 elif sched_cmd == Cmd.CLOSE:
+                    print("sched cmd to close gate")
                     gate_drv.close()
 
                 gate_drv.tick()
