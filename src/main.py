@@ -19,6 +19,7 @@ tick_sum = 0
 
 
 def elapse_100ms():
+    threading.Timer(0.1, elapse_100ms).start()
     global tick_100ms
     global tick_sum
     tick_100ms += 1
@@ -34,8 +35,7 @@ def main():
     gate_drv = Gate_drv(gate)
     api = Api()
     schedule = Schedule()
-
-    threading.Timer(0.1, elapse_100ms).start()
+    elapse_100ms()
 
     print("Started chicken gate")
 
