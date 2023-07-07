@@ -30,9 +30,9 @@ class Gate_drv:
 
         # drive gate according to gate output
         if self.cmd == Cmd.OPEN:
-            self.__turn_cw()
-        elif self.cmd == Cmd.CLOSE:
             self.__turn_ccw()
+        elif self.cmd == Cmd.CLOSE:
+            self.__turn_cw()
         else:
             self.__stop()
 
