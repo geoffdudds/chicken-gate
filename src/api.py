@@ -21,9 +21,9 @@ class Api:
             print("V0 gate command: {}".format(value))
             val = value.pop()
             if val == "0":
-                self.__cmd = Cmd.OPEN
-            elif val == "1":
                 self.__cmd = Cmd.CLOSE
+            elif val == "1":
+                self.__cmd = Cmd.OPEN
             else:
                 print("invalid gate command")
 
