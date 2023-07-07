@@ -15,18 +15,12 @@ from email_me import send_email
 # signal(SIGPIPE,SIG_DFL)
 
 tick_100ms = 0
-tick_sum = 0
 
 
 def elapse_100ms():
     threading.Timer(0.1, elapse_100ms).start()
     global tick_100ms
-    global tick_sum
     tick_100ms += 1
-    tick_sum += 1
-    if tick_sum > 10:
-        print("1s elapsed in main tick")
-        tick_sum = 0
 
 
 def main():
