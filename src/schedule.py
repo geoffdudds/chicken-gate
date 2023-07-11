@@ -38,8 +38,7 @@ class Schedule:
 
     def __restart_service(self):
         # required for blynk to keep working
-        os.system("/usr/bin/systemctl restart chickengate.service")
-        # self.__update_schedule()
+        os.system("/usr/bin/systemctl restart chicken-gate.service")
 
     def __update_schedule(self):
         self.__update_sunrise_sunset_times()

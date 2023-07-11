@@ -17,6 +17,7 @@ from gate_drv import Gate_drv
 from gate_cmd import Cmd
 import errno
 from email_me import send_email
+import os
 
 
 # from signal import signal, SIGPIPE, SIG_DFL
@@ -79,6 +80,7 @@ def main():
                 print("Caught unhandled exception - not restarting")
                 send_email("Some other error")
                 print(e)
+            os.system("/usr/bin/bash reboot")
 
 
 if __name__ == "__main__":
