@@ -45,22 +45,23 @@ def main():
     print("Started chicken gate")
 
     while True:
-        try:
-            api.run()
+        if pipe_error is False and other_error is False:
+            try:
+                api.run()
 
-        except IOError as e:
-            if e.errno == errno.EPIPE:
-                print("Caught pipe error")
-                if pipe_error is False:
-                    send_email("Pipe error")
-                    pipe_error = True
-                print(e)
-            else:
-                print("Caught unhandled exception")
-                if other_error is False:
-                    send_email("Some other error")
-                    other_error = True
-                print(e)
+            except IOError as e:
+                if e.errno == errno.EPIPE:
+                    print("Caught pipe error")
+                    if pipe_error is False:
+                        send_email("Pipe error")
+                        pipe_error = True
+                    print(e)
+                else:
+                    print("Caught unhandled exception")
+                    if other_error is False:
+                        send_email("Some other error")
+                        other_error = True
+                    print(e)
 
         while tick_100ms > 0:
             tick_100ms -= 1
