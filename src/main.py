@@ -38,44 +38,44 @@ def main():
     other_error = False
     gate = Gate()
     gate_drv = Gate_drv(gate)
-    api = Api()
+    # api = Api()
     schedule = Schedule()
     elapse_100ms()
 
     print("Started chicken gate")
 
     while True:
-        if pipe_error is False and other_error is False:
-            try:
-                # api.run()
-                pass
+        # if pipe_error is False and other_error is False:
+        #     try:
+        #         api.run()
+        #         pass
 
-            except IOError as e:
-                if e.errno == errno.EPIPE:
-                    print("Caught pipe error")
-                    if pipe_error is False:
-                        send_email("Pipe error")
-                        pipe_error = True
-                    print(e)
-                else:
-                    print("Caught unhandled exception")
-                    if other_error is False:
-                        send_email("Some other error")
-                        other_error = True
-                    print(e)
+        #     except IOError as e:
+        #         if e.errno == errno.EPIPE:
+        #             print("Caught pipe error")
+        #             if pipe_error is False:
+        #                 send_email("Pipe error")
+        #                 pipe_error = True
+        #             print(e)
+        #         else:
+        #             print("Caught unhandled exception")
+        #             if other_error is False:
+        #                 send_email("Some other error")
+        #                 other_error = True
+        #             print(e)
 
         while tick_100ms > 0:
             tick_100ms -= 1
 
             # push api commands to driver
-            gate_drv.reset_posn_to(api.get_posn_reset())
-            api_cmd = api.get_cmd()
-            if api_cmd == Cmd.OPEN:
-                print("app cmd to open gate")
-                gate_drv.open()
-            elif api_cmd == Cmd.CLOSE:
-                print("app cmd to close gate")
-                gate_drv.close()
+            # gate_drv.reset_posn_to(api.get_posn_reset())
+            # api_cmd = api.get_cmd()
+            # if api_cmd == Cmd.OPEN:
+            #     print("app cmd to open gate")
+            #     gate_drv.open()
+            # elif api_cmd == Cmd.CLOSE:
+            #     print("app cmd to close gate")
+            #     gate_drv.close()
 
             # push api commands to driver
             sched_cmd = schedule.get_gate_cmd()
@@ -87,7 +87,7 @@ def main():
                 gate_drv.close()
 
             gate_drv.tick()
-            api.set_posn(gate_drv.get_posn())
+            # api.set_posn(gate_drv.get_posn())
 
 
 if __name__ == "__main__":
