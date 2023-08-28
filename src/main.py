@@ -47,7 +47,8 @@ def main():
     while True:
         if pipe_error is False and other_error is False:
             try:
-                api.run()
+                # api.run()
+                pass
 
             except IOError as e:
                 if e.errno == errno.EPIPE:
@@ -65,7 +66,7 @@ def main():
 
         while tick_100ms > 0:
             tick_100ms -= 1
-            
+
             # push api commands to driver
             gate_drv.reset_posn_to(api.get_posn_reset())
             api_cmd = api.get_cmd()
@@ -87,6 +88,7 @@ def main():
 
             gate_drv.tick()
             api.set_posn(gate_drv.get_posn())
+
 
 if __name__ == "__main__":
     main()
