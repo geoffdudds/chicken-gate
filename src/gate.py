@@ -35,10 +35,16 @@ class Gate:
 
         # update state
         if self.__posn_cmd < self.__posn:
+            if self.__motion_cmd is not Cmd.OPEN:
+                print("gate entering OPEN state")
             self.__motion_cmd = Cmd.OPEN
         elif self.__posn_cmd > self.__posn:
+            if self.__motion_cmd is not Cmd.CLOSE:
+                print("gate entering CLOSE state")
             self.__motion_cmd = Cmd.CLOSE
         else:
+            if self.__motion_cmd is not Cmd.STOP:
+                print("gate entering STOP state")
             self.__motion_cmd = Cmd.STOP
 
     def set_closed_switch(self, gate_closed_switch):
