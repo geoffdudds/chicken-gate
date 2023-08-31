@@ -23,14 +23,6 @@ import os
 # from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
 
-tick_100ms = 0
-
-
-def elapse_100ms():
-    threading.Timer(0.1, elapse_100ms).start()
-    global tick_100ms
-    tick_100ms += 1
-
 
 def main():
     global tick_100ms
@@ -40,11 +32,18 @@ def main():
     gate_drv = Gate_drv(gate)
     # api = Api()
     schedule = Schedule()
-    elapse_100ms()
 
     print("Started chicken gate")
+    
+    tick_100ms = 0
+    next_tick = time.perf_counter()
 
     while True:
+        now = time.perf_counter()
+        if now >= next_tick:
+            next_tick += 0.1
+            tick_100ms += 1
+        
         # if pipe_error is False and other_error is False:
         #     try:
         #         api.run()
