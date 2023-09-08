@@ -22,7 +22,7 @@ class Schedule:
             trigger="cron",
             replace_existing=True,
             id="0",
-            hour=12,
+            hour=0,
             minute=0,
         )
         self.__update_schedule()

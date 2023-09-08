@@ -2,7 +2,7 @@ from gate_cmd import Cmd
 
 
 class Gate:
-    def __init__(self, init_posn=0, open_time=330, close_time=400):
+    def __init__(self, init_posn=100, open_time=330, close_time=400):
         self.__motion_cmd = Cmd.STOP
         self.__closed_switch_pressed = False
         self.__open_switch_pressed = False
