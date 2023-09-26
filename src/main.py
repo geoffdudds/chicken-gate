@@ -9,9 +9,12 @@ import time
 
 time.sleep(60)
 
+ENABLE_APP = False
+
+
 from gate import Gate
 from schedule import Schedule
-from api import Api
+if ENABLE_APP: from api import Api
 from gate_drv import Gate_drv
 from gate_cmd import Cmd
 import errno
@@ -20,7 +23,6 @@ import os
 import json
 from datetime import datetime
 
-ENABLE_APP = True
 
 # from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
