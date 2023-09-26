@@ -10,16 +10,17 @@ import time
 
 time.sleep(60)
 
+ENABLE_APP = False
+
+
 from gate import Gate
 from schedule import Schedule
-from api import Api
+if ENABLE_APP: from api import Api
 from gate_drv import Gate_drv
 from gate_cmd import Cmd
 import errno
 from email_me import send_email
-import os
 
-ENABLE_APP = True
 
 # from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
