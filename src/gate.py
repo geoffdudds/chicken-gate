@@ -3,9 +3,7 @@ from email_me import send_email
 
 
 class Gate:
-    def __init__(
-        self, init_posn: float = 100, open_time: float = 330, close_time: float = 400
-    ):
+    def __init__(self, init_posn=100, open_time=330, close_time=420):
         self.__motion_cmd = Cmd.STOP
         self.__closed_switch_pressed = False
         self.__open_switch_pressed = False
