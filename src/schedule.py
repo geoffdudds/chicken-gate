@@ -1,21 +1,21 @@
-from gate_cmd import Cmd
-from suntime import Sun
-from dateutil import tz
-from datetime import timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
+from gate_cmd import Cmd
+from suntimes import SunTimes
+
 import os
 
 
 class Schedule:
     def __init__(self):
-        self.__sunrise = None
-        self.__sunset = None
+        self.__dawn = None
+        self.__dusk = None
         self.__lift_job = None
         self.__lower_job = None
         self.gate_cmd = Cmd.NONE
         self.__add_to_log("Program started")
 
-        # create schedule, add job to update sunrise / sunset times, and start the scheduler
+        # create schedule, add job to update dawn / dusk times, and start the scheduler
+        self.__suntime = SunTimes()
         self.__sched = BackgroundScheduler()
         self.__update_sched_job = self.__sched.add_job(
             func=self.__restart_service,
@@ -41,25 +41,15 @@ class Schedule:
         os.system("/usr/bin/systemctl restart chicken-gate.service")
 
     def __update_schedule(self):
-        self.__update_sunrise_sunset_times()
+        self.__update_dawn_and_dusk_times()
         self.__schedule_close()
         self.__schedule_open()
 
         self.__sched.print_jobs()
 
-    def __update_sunrise_sunset_times(self):
-        latitude = 49.164379
-        longitude = -123.936661
-        sun = Sun(latitude, longitude)
-        to_zone = tz.gettz()
-
-        # get sunrise time
-        sunrise_utc = sun.get_sunrise_time()
-        self.__sunrise = sunrise_utc.astimezone(to_zone)
-
-        # repeat for sunset time
-        sunset_utc = sun.get_sunset_time()
-        self.__sunset = sunset_utc.astimezone(to_zone)
+    def __update_dawn_and_dusk_times(self):
+        self.__dawn = self.__suntime.get_dawn()
+        self.__dusk = self.__suntime.get_dusk()
 
     def __close(self):
         self.__add_to_log("Executing scheduled close job...")
@@ -70,7 +60,7 @@ class Schedule:
         self.gate_cmd = Cmd.OPEN
 
     def __schedule_close(self):
-        lift_time = self.__sunset + timedelta(minutes=30)
+        lift_time = self.__dusk
         if self.__lift_job is not None:
             self.__lift_job.remove()
         self.__lift_job = self.__sched.add_job(
@@ -90,6 +80,6 @@ class Schedule:
             trigger="cron",
             replace_existing=True,
             id="2",
-            hour=self.__sunrise.hour,
-            minute=self.__sunrise.minute,
+            hour=self.__dawn.hour,
+            minute=self.__dawn.minute,
         )

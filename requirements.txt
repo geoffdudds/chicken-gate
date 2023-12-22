@@ -4,3 +4,5 @@ RPi.GPIO
 gpiozero
 blynk-library-python
 toml
+black
+astral
