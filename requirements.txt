@@ -5,3 +5,5 @@ gpiozero
 blynk-library-python
 toml
 flask
+black
+astral
