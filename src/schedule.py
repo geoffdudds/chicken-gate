@@ -18,7 +18,7 @@ class Schedule:
         self.__suntime = SunTimes()
         self.__sched = BackgroundScheduler()
         self.__update_sched_job = self.__sched.add_job(
-            func=self.__restart_service,
+            func=self.__update_schedule,
             trigger="cron",
             replace_existing=True,
             id="0",
