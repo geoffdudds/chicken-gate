@@ -7,9 +7,11 @@ todo: make run as module so imports can work with pytest and program execution
 
 import time
 
-time.sleep(60)
-
 ENABLE_APP = False
+
+if ENABLE_APP:
+    # wait for os to establish internet etc
+    time.sleep(60)
 
 
 from gate import Gate
