@@ -14,6 +14,7 @@ class Gate_drv:
 
         self.gate = gate
         self.cmd = Cmd.STOP
+        self.__prev_cmd = Cmd.NONE
 
         # reset gate position to 100 if closed switch is pressed, else 0
         self.reset_posn_to(100 if self.closed_switch.is_pressed else 0)
@@ -30,13 +31,17 @@ class Gate_drv:
         # get gate output
         self.cmd = self.gate.get_cmd()
 
-        # drive gate according to gate output
-        if self.cmd == Cmd.OPEN:
-            self.__turn_ccw()
-        elif self.cmd == Cmd.CLOSE:
-            self.__turn_cw()
-        else:
-            self.__stop()
+        # only update outputs on change
+        if self.cmd != self.__prev_cmd:
+            self.__prev_cmd = self.cmd
+            
+            # drive gate according to gate output
+            if self.cmd == Cmd.OPEN:
+                self.__turn_ccw()
+            elif self.cmd == Cmd.CLOSE:
+                self.__turn_cw()
+            else:
+                self.__stop()
 
     def get_posn(self):
         return self.gate.get_posn()
