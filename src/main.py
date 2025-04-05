@@ -2,7 +2,7 @@
 todo: make the reset gate position use the enum instead of interger
 todo: update the gate cmd button when the reset button is pressed
 todo: update the gate cmd button when a scheduled cmd is executed
-todo:  make run as module so imports can work with pytest and program execution
+todo: make run as module so imports can work with pytest and program execution
 """
 
 import time
