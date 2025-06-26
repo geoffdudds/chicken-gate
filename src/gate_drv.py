@@ -1,21 +1,22 @@
-import RPi.GPIO as GPIO
-from gpiozero import Button
+from gpiozero import Button, OutputDevice
 from gate import Gate
 from gate_cmd import Cmd
 
 
 class Gate_drv:
     def __init__(self, gate: Gate):
-        # set up io's
-        self.closed_switch = Button(
-            4, active_high=False
-        )  # gate closed switch (physical pin 7)
-        GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
-        GPIO.setup(4, GPIO.OUT)  # set Relay 1 output
-        GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
+        # set up io's using gpiozero for all GPIO operations
+        self.closed_switch = Button(2, active_high=False)  # physical pin 3, GPIO 2
+
+        # Use OutputDevice for relays
+        self.relay1 = OutputDevice(4, initial_value=False)  # physical pin 7, GPIO 4
+        self.relay2 = OutputDevice(17, initial_value=False)  # physical pin 11, GPIO 17
 
         self.gate = gate
         self.cmd = Cmd.STOP
+
+        # reset gate position to 100 if closed switch is pressed, else 0
+        self.reset_posn_to(100 if self.closed_switch.is_pressed else 0)
 
     def tick(self):
         # set gate inputs
@@ -52,13 +53,19 @@ class Gate_drv:
         self.gate.close()
 
     def __turn_cw(self):
-        GPIO.output(4, GPIO.HIGH)
-        GPIO.output(17, GPIO.LOW)
+        self.relay1.on()
+        self.relay2.off()
 
     def __turn_ccw(self):
-        GPIO.output(4, GPIO.LOW)
-        GPIO.output(17, GPIO.HIGH)
+        self.relay1.off()
+        self.relay2.on()
 
     def __stop(self):
-        GPIO.output(4, GPIO.LOW)
-        GPIO.output(17, GPIO.LOW)
+        self.relay1.off()
+        self.relay2.off()
+
+    def cleanup(self):
+        """Clean up GPIO resources when shutting down"""
+        self.relay1.close()
+        self.relay2.close()
+        self.closed_switch.close()
