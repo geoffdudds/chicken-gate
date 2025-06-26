@@ -108,6 +108,24 @@ def main():
             elif shell_cmd == "CLOSE":
                 print("shell cmd to close gate")
                 gate_drv.close()
+            elif shell_cmd and shell_cmd.startswith("RESET"):
+                # Handle reset commands: RESET or RESET:position
+                parts = shell_cmd.split(":")
+                if len(parts) == 1:
+                    # RESET - reset to current switch position (100 if closed, 0 if open)
+                    reset_pos = 100 if gate_drv.closed_switch.is_pressed else 0
+                    print(f"shell cmd to reset gate position to {reset_pos}")
+                    gate_drv.reset_posn_to(reset_pos)
+                elif len(parts) == 2:
+                    # RESET:position - reset to specific position
+                    try:
+                        reset_pos = int(parts[1])
+                        print(f"shell cmd to reset gate position to {reset_pos}")
+                        gate_drv.reset_posn_to(reset_pos)
+                    except ValueError:
+                        print(f"Invalid reset position: {parts[1]}")
+                else:
+                    print(f"Invalid reset command format: {shell_cmd}")
 
             gate_drv.tick()
             if ENABLE_APP:
