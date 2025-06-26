@@ -5,7 +5,6 @@ todo: update the gate cmd button when a scheduled cmd is executed
 todo: make run as module so imports can work with pytest and program execution
 """
 
-
 import time
 
 time.sleep(60)
@@ -25,17 +24,32 @@ ENABLE_APP = True
 # signal(SIGPIPE,SIG_DFL)
 
 
+def check_command_file():
+    """Check for commands in a file and remove the file after reading."""
+    cmd_file = "gate_cmd.txt"
+    if os.path.exists(cmd_file):
+        try:
+            with open(cmd_file, "r") as f:
+                command = f.read().strip()
+            os.remove(cmd_file)  # Remove after reading to prevent re-execution
+            return command
+        except (IOError, OSError):
+            return None
+    return None
+
+
 def main():
     global tick_100ms
     pipe_error = False
     other_error = False
     gate = Gate()
     gate_drv = Gate_drv(gate)
-    if ENABLE_APP: api = Api()
+    if ENABLE_APP:
+        api = Api()
     schedule = Schedule()
 
     print("Started chicken gate")
-    
+
     tick_100ms = 0
     next_tick = time.perf_counter()
 
@@ -44,11 +58,10 @@ def main():
         if now >= next_tick:
             next_tick += 0.1
             tick_100ms += 1
-        
 
         while tick_100ms > 0:
             tick_100ms -= 1
-            
+
             if ENABLE_APP:
                 if pipe_error is False and other_error is False:
                     try:
@@ -87,8 +100,18 @@ def main():
                 print("sched cmd to close gate")
                 gate_drv.close()
 
+            # push shell commands to driver
+            shell_cmd = check_command_file()
+            if shell_cmd == "OPEN":
+                print("shell cmd to open gate")
+                gate_drv.open()
+            elif shell_cmd == "CLOSE":
+                print("shell cmd to close gate")
+                gate_drv.close()
+
             gate_drv.tick()
-            if ENABLE_APP: api.set_posn(gate_drv.get_posn())
+            if ENABLE_APP:
+                api.set_posn(gate_drv.get_posn())
 
 
 if __name__ == "__main__":
