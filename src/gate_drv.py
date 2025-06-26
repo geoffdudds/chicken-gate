@@ -7,7 +7,9 @@ from gate_cmd import Cmd
 class Gate_drv:
     def __init__(self, gate: Gate):
         # set up io's
-        self.closed_switch = Button(4)  # gate closed switch (physical pin 7)
+        self.closed_switch = Button(
+            4, active_high=False
+        )  # gate closed switch (physical pin 7)
         GPIO.setmode(GPIO.BCM)  # Broadcom pin-numbering scheme
         GPIO.setup(4, GPIO.OUT)  # set Relay 1 output
         GPIO.setup(17, GPIO.OUT)  # set Relay 2 output
@@ -17,9 +19,8 @@ class Gate_drv:
 
     def tick(self):
         # set gate inputs
+        self.gate.set_closed_switch(self.closed_switch.is_pressed)
         # todo: add when switch is installed
-        # self.gate.set_closed_switch(self.closed_switch.is_pressed)
-        self.gate.set_closed_switch(False)
         self.gate.set_open_switch(False)
 
         # tick gate
@@ -40,7 +41,7 @@ class Gate_drv:
         return self.gate.get_posn()
 
     def reset_posn_to(self, posn):
-        if posn != None:
+        if posn is not None:
             print(f"position reset to {posn}")
             self.gate.reset_posn_to(posn)
 
