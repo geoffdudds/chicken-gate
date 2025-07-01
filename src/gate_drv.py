@@ -7,7 +7,7 @@ class Gate_drv:
     def __init__(self, gate: Gate):
         # set up io's using gpiozero for all GPIO operations
         # Using basic Button configuration compatible with older gpiozero versions
-        self.closed_switch = Button(2, pull_up=True)  # physical pin 3, GPIO 2
+        self.closed_switch = Button(2, pull_up=True, active_low=True)  # physical pin 3, GPIO 2
 
         # Use OutputDevice for relays
         self.relay1 = OutputDevice(4, initial_value=False)  # physical pin 7, GPIO 4
@@ -21,7 +21,7 @@ class Gate_drv:
         self.reset_posn_to(100 if self.closed_switch.is_pressed else 0)
 
     def tick(self):
-        # set gate inputs
+        # set gate inputs (no inversion needed with active_low=True)
         self.gate.set_closed_switch(self.closed_switch.is_pressed)
         # todo: add when switch is installed
         self.gate.set_open_switch(False)
