@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Gate Control" />
+    <link rel="manifest" href="/static/manifest.json" />
+    <link
+      rel="apple-touch-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiM2NjdlZWEiLz4KPHRleHQgeD0iOTYiIHk9IjEwNSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+8J+QlDwvdGV4dD4KPC9zdmc+"
+    />
     <title>Chicken Gate Control</title>
     <style>
       * {
@@ -17,6 +26,10 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
         padding: 20px;
+        margin: 0;
+        -webkit-text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
 
       .container {
@@ -140,6 +153,11 @@
         transition: all 0.3s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
+        min-height: 48px;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
       }
 
       .btn:hover {
@@ -224,22 +242,221 @@
         margin-top: 20px;
       }
 
-      @media (max-width: 600px) {
+      @media (max-width: 768px) {
+        /* Tablet adjustments */
         .container {
-          margin: 10px;
+          margin: 15px;
           border-radius: 15px;
         }
 
         .header {
-          padding: 20px;
+          padding: 25px 20px;
         }
 
         .header h1 {
-          font-size: 2em;
+          font-size: 2.2em;
+        }
+
+        .status-grid {
+          grid-template-columns: 1fr;
+          gap: 15px;
+        }
+
+        .status-card {
+          padding: 20px;
+        }
+
+        .controls {
+          padding: 25px 20px;
+        }
+
+        .button-grid {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .btn {
+          padding: 18px 25px;
+          font-size: 1.2em;
+        }
+
+        .reset-controls {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .reset-input {
+          width: 120px;
+          padding: 12px;
+          font-size: 1.1em;
+        }
+      }
+
+      @media (max-width: 480px) {
+        /* Mobile phone adjustments */
+        body {
+          padding: 5px;
+        }
+
+        .container {
+          margin: 5px;
+          border-radius: 12px;
+        }
+
+        .header {
+          padding: 20px 15px;
+        }
+
+        .header h1 {
+          font-size: 1.8em;
+          margin-bottom: 8px;
+        }
+
+        .header p {
+          font-size: 1em;
         }
 
         .content {
-          padding: 20px;
+          padding: 15px;
+        }
+
+        .status-grid {
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+
+        .status-card {
+          padding: 18px 15px;
+        }
+
+        .status-card h3 {
+          font-size: 1em;
+          margin-bottom: 12px;
+        }
+
+        .status-value {
+          font-size: 1.6em;
+        }
+
+        .position-bar {
+          height: 16px;
+        }
+
+        .controls {
+          padding: 20px 15px;
+          margin-bottom: 20px;
+        }
+
+        .controls h2 {
+          font-size: 1.3em;
+          margin-bottom: 15px;
+        }
+
+        .button-grid {
+          gap: 10px;
+        }
+
+        .btn {
+          padding: 16px 20px;
+          font-size: 1.1em;
+          letter-spacing: 0.5px;
+        }
+
+        .reset-controls {
+          gap: 12px;
+        }
+
+        .reset-controls label {
+          font-size: 0.95em;
+          text-align: center;
+        }
+
+        .reset-input {
+          width: 100px;
+          padding: 10px;
+          font-size: 1em;
+        }
+
+        .status-message {
+          padding: 12px;
+          font-size: 0.95em;
+          margin-top: 15px;
+        }
+
+        .last-updated {
+          font-size: 0.85em;
+          margin-top: 15px;
+        }
+      }
+
+      @media (max-width: 320px) {
+        /* Very small phone adjustments */
+        .header h1 {
+          font-size: 1.6em;
+        }
+
+        .status-card {
+          padding: 15px 12px;
+        }
+
+        .status-value {
+          font-size: 1.4em;
+        }
+
+        .btn {
+          padding: 14px 16px;
+          font-size: 1em;
+        }
+
+        .reset-input {
+          width: 80px;
+          padding: 8px;
+        }
+
+        .controls {
+          padding: 15px 12px;
+        }
+      }
+
+      /* Touch-friendly improvements */
+      @media (hover: none) and (pointer: coarse) {
+        .btn {
+          padding: 18px 25px;
+          min-height: 48px; /* Minimum touch target size */
+        }
+
+        .reset-input {
+          min-height: 44px;
+          padding: 12px;
+        }
+
+        /* Remove hover effects on touch devices */
+        .status-card:hover {
+          transform: none;
+          box-shadow: none;
+        }
+
+        .btn:hover {
+          transform: none;
+        }
+      }
+
+      /* Landscape orientation on mobile */
+      @media (max-width: 768px) and (orientation: landscape) {
+        .status-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .button-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .header {
+          padding: 15px 20px;
+        }
+
+        .header h1 {
+          font-size: 1.8em;
         }
       }
     </style>
@@ -437,6 +654,75 @@
           stopUpdates();
         } else {
           startUpdates();
+        }
+      });
+
+      // Mobile-specific enhancements
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add touch feedback for buttons
+        const buttons = document.querySelectorAll(".btn");
+        buttons.forEach((button) => {
+          button.addEventListener("touchstart", function () {
+            this.style.opacity = "0.8";
+          });
+
+          button.addEventListener("touchend", function () {
+            this.style.opacity = "1";
+          });
+
+          button.addEventListener("touchcancel", function () {
+            this.style.opacity = "1";
+          });
+        });
+
+        // Prevent zoom on input focus for iOS
+        const inputs = document.querySelectorAll("input");
+        inputs.forEach((input) => {
+          input.addEventListener("focus", function () {
+            if (window.devicePixelRatio > 1) {
+              document
+                .querySelector("meta[name=viewport]")
+                .setAttribute(
+                  "content",
+                  "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+                );
+            }
+          });
+
+          input.addEventListener("blur", function () {
+            document
+              .querySelector("meta[name=viewport]")
+              .setAttribute("content", "width=device-width, initial-scale=1.0");
+          });
+        });
+
+        // Add swipe-to-refresh detection (prevent accidental refresh)
+        let startY = 0;
+        document.addEventListener("touchstart", function (e) {
+          startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener(
+          "touchmove",
+          function (e) {
+            const currentY = e.touches[0].clientY;
+            if (startY < currentY && window.scrollY === 0) {
+              // Prevent pull-to-refresh on mobile browsers
+              e.preventDefault();
+            }
+          },
+          { passive: false }
+        );
+
+        // Optimize for mobile performance
+        if (
+          "serviceWorker" in navigator &&
+          window.location.protocol === "https:"
+        ) {
+          // Only register service worker on HTTPS for offline capability
+          console.log(
+            "HTTPS detected - service worker could be added for offline support"
+          );
         }
       });
     </script>
