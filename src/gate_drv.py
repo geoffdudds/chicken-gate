@@ -6,7 +6,7 @@ from gate_cmd import Cmd
 class Gate_drv:
     def __init__(self, gate: Gate):
         # set up io's using gpiozero for all GPIO operations
-        self.closed_switch = Button(2, active_high=False)  # physical pin 3, GPIO 2
+        self.closed_switch = Button(2, pull_up=True, active_high=True)  # physical pin 3, GPIO 2
 
         # Use OutputDevice for relays
         self.relay1 = OutputDevice(4, initial_value=False)  # physical pin 7, GPIO 4
