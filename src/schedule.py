@@ -48,7 +48,7 @@ class Schedule:
         self.__sched.print_jobs()
 
     def __update_dawn_and_dusk_times(self):
-        self.__dawn = self.__suntime.get_dawn()
+        self.__dawn = self.__suntime.get_sunrise()
         self.__dusk = self.__suntime.get_dusk()
 
     def __close(self):
