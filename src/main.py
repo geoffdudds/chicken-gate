@@ -17,11 +17,30 @@ from gate_cmd import Cmd
 import errno
 from email_me import send_email
 import os
+import json
+from datetime import datetime
 
 ENABLE_APP = True
 
 # from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
+
+
+def write_gate_status(gate_drv):
+    """Write current gate status to file for web interface"""
+    try:
+        status = {
+            "position": gate_drv.get_posn(),
+            "closed_switch": gate_drv.closed_switch.is_pressed,
+            "open_switch": False,  # TODO: implement when open switch is installed
+            "last_updated": datetime.now().isoformat(),
+            "status": "Running"
+        }
+
+        with open("gate_status.json", "w") as f:
+            json.dump(status, f, indent=2)
+    except Exception as e:
+        print(f"Failed to write status file: {e}")
 
 
 def check_command_file():
@@ -128,8 +147,13 @@ def main():
                     print(f"Invalid reset command format: {shell_cmd}")
 
             gate_drv.tick()
+
+            # Write status for web interface
+            write_gate_status(gate_drv)
+
             if ENABLE_APP:
                 api.set_posn(gate_drv.get_posn())
+            write_gate_status(gate_drv)
 
 
 if __name__ == "__main__":
