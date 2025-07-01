@@ -6,7 +6,7 @@ from gate_cmd import Cmd
 class Gate_drv:
     def __init__(self, gate: Gate):
         # set up io's using gpiozero for all GPIO operations
-        self.closed_switch = Button(2, pull_up=True, active_high=True)  # physical pin 3, GPIO 2
+        self.closed_switch = Button(2, pull_up=True)  # physical pin 3, GPIO 2
 
         # Use OutputDevice for relays
         self.relay1 = OutputDevice(4, initial_value=False)  # physical pin 7, GPIO 4
@@ -34,7 +34,7 @@ class Gate_drv:
         # only update outputs on change
         if self.cmd != self.__prev_cmd:
             self.__prev_cmd = self.cmd
-            
+
             # drive gate according to gate output
             if self.cmd == Cmd.OPEN:
                 self.__turn_ccw()
