@@ -6,7 +6,7 @@ from gate_cmd import Cmd
 class Gate_drv:
     def __init__(self, gate: Gate):
         # set up io's using gpiozero for all GPIO operations
-        # Using basic Button configuration compatible with older gpiozero versions
+        # Normally closed switch with pull-up: pressed = HIGH, not pressed = LOW
         self.closed_switch = Button(2, pull_up=True)  # physical pin 3, GPIO 2
 
         # Use OutputDevice for relays
@@ -18,11 +18,24 @@ class Gate_drv:
         self.__prev_cmd = Cmd.NONE
 
         # reset gate position to 100 if closed switch is pressed, else 0
-        self.reset_posn_to(100 if self.closed_switch.is_pressed else 0)
+        # For normally closed switch: pressed = True when button reads HIGH
+        self.reset_posn_to(100 if self.is_switch_pressed() else 0)
+
+    def is_switch_pressed(self):
+        """
+        Helper method to handle normally closed switch logic.
+        Normally closed switch with pull-up:
+        - Switch not pressed (closed) = GPIO reads LOW = is_pressed = True → gate NOT closed
+        - Switch pressed (opened) = GPIO reads HIGH = is_pressed = False → gate IS closed
+
+        Since this is backwards from what we want, we need to invert the logic.
+        When the gate is physically closed, the switch opens and GPIO goes HIGH.
+        """
+        return not self.closed_switch.is_pressed
 
     def tick(self):
-        # set gate inputs (no inversion needed with active_low=True)
-        self.gate.set_closed_switch(self.closed_switch.is_pressed)
+        # set gate inputs - using helper method for clarity
+        self.gate.set_closed_switch(self.is_switch_pressed())
         # todo: add when switch is installed
         self.gate.set_open_switch(False)
 
