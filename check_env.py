@@ -19,7 +19,10 @@ def check_python_info():
     try:
         import importlib_metadata
         print("✅ importlib_metadata is available")
-        print(f"   Version: {importlib_metadata.__version__}")
+        try:
+            print(f"   Version: {importlib_metadata.version('importlib_metadata')}")
+        except:
+            print("   Version: (version info not available)")
         print(f"   Location: {importlib_metadata.__file__}")
     except ImportError:
         print("❌ importlib_metadata is NOT available")
