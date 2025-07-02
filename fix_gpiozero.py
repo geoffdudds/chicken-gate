@@ -8,23 +8,23 @@ import os
 
 def fix_importlib_metadata():
     """Create a compatibility shim for importlib.metadata"""
-    
+
     print("🔧 Applying importlib.metadata workaround for Python 3.7...")
-    
+
     # Check if we already have importlib_metadata
     try:
         import importlib_metadata
         print("✅ importlib_metadata package found")
-        
+
         # Create the compatibility module
         import importlib
-        
+
         # Add metadata as an attribute to importlib
         importlib.metadata = importlib_metadata
-        
+
         print("✅ Created importlib.metadata compatibility layer")
         return True
-        
+
     except ImportError:
         print("❌ importlib_metadata package not found")
         print("   Run: pip3 install importlib-metadata")
@@ -45,7 +45,7 @@ def test_gpiozero():
 def main():
     print("🔧 gpiozero Compatibility Fix for Python 3.7")
     print("=" * 50)
-    
+
     # Apply the fix
     if fix_importlib_metadata():
         # Test if it works

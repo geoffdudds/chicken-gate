@@ -9,12 +9,12 @@ import subprocess
 def check_python_info():
     print("🔍 Python Environment Diagnostics")
     print("=" * 50)
-    
+
     print(f"Python executable: {sys.executable}")
     print(f"Python version: {sys.version}")
     print(f"Python path: {sys.path}")
     print()
-    
+
     # Check if importlib_metadata is installed
     try:
         import importlib_metadata
@@ -26,16 +26,16 @@ def check_python_info():
         print(f"   Location: {importlib_metadata.__file__}")
     except ImportError:
         print("❌ importlib_metadata is NOT available")
-    
+
     # Try alternative import
     try:
         from importlib import metadata
         print("✅ importlib.metadata is available (built-in)")
     except ImportError:
         print("❌ importlib.metadata is NOT available")
-    
+
     print()
-    
+
     # Check gpiozero installation
     try:
         import gpiozero
@@ -44,13 +44,13 @@ def check_python_info():
         print(f"   Location: {gpiozero.__file__}")
     except ImportError as e:
         print(f"❌ gpiozero import failed: {e}")
-    
+
     print()
-    
+
     # Show pip list
     print("📦 Installed packages:")
     try:
-        result = subprocess.run([sys.executable, "-m", "pip", "list"], 
+        result = subprocess.run([sys.executable, "-m", "pip", "list"],
                               capture_output=True, text=True)
         lines = result.stdout.split('\n')
         for line in lines:
