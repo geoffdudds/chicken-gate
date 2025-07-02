@@ -1,17 +1,25 @@
-from gpiozero import Button, OutputDevice
+import RPi.GPIO as GPIO
 from gate import Gate
 from gate_cmd import Cmd
 
 
 class Gate_drv:
     def __init__(self, gate: Gate):
-        # set up io's using gpiozero for all GPIO operations
-        # Normally closed switch with pull-up: pressed = HIGH, not pressed = LOW
-        self.closed_switch = Button(2, pull_up=True)  # physical pin 3, GPIO 2
+        # Set up GPIO mode
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
 
-        # Use OutputDevice for relays
-        self.relay1 = OutputDevice(4, initial_value=False)  # physical pin 7, GPIO 4
-        self.relay2 = OutputDevice(17, initial_value=False)  # physical pin 11, GPIO 17
+        # GPIO pin assignments
+        self.CLOSED_SWITCH_PIN = 2   # physical pin 3, GPIO 2
+        self.RELAY1_PIN = 4          # physical pin 7, GPIO 4
+        self.RELAY2_PIN = 17         # physical pin 11, GPIO 17
+
+        # Set up switch input with pull-up (normally closed switch)
+        GPIO.setup(self.CLOSED_SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        # Set up relay outputs
+        GPIO.setup(self.RELAY1_PIN, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.RELAY2_PIN, GPIO.OUT, initial=GPIO.LOW)
 
         self.gate = gate
         self.cmd = Cmd.STOP
@@ -25,13 +33,14 @@ class Gate_drv:
         """
         Helper method to handle normally closed switch logic.
         Normally closed switch with pull-up:
-        - Switch not pressed (closed) = GPIO reads LOW = is_pressed = True → gate NOT closed
-        - Switch pressed (opened) = GPIO reads HIGH = is_pressed = False → gate IS closed
+        - Switch not pressed (closed) = GPIO reads LOW → gate NOT closed
+        - Switch pressed (opened) = GPIO reads HIGH → gate IS closed
 
         Since this is backwards from what we want, we need to invert the logic.
         When the gate is physically closed, the switch opens and GPIO goes HIGH.
         """
-        return not self.closed_switch.is_pressed
+        # Read GPIO pin - HIGH means switch is pressed (opened)
+        return GPIO.input(self.CLOSED_SWITCH_PIN) == GPIO.HIGH
 
     def tick(self):
         # set gate inputs - using helper method for clarity
@@ -72,19 +81,17 @@ class Gate_drv:
         self.gate.close()
 
     def __turn_cw(self):
-        self.relay1.on()
-        self.relay2.off()
+        GPIO.output(self.RELAY1_PIN, GPIO.HIGH)
+        GPIO.output(self.RELAY2_PIN, GPIO.LOW)
 
     def __turn_ccw(self):
-        self.relay1.off()
-        self.relay2.on()
+        GPIO.output(self.RELAY1_PIN, GPIO.LOW)
+        GPIO.output(self.RELAY2_PIN, GPIO.HIGH)
 
     def __stop(self):
-        self.relay1.off()
-        self.relay2.off()
+        GPIO.output(self.RELAY1_PIN, GPIO.LOW)
+        GPIO.output(self.RELAY2_PIN, GPIO.LOW)
 
     def cleanup(self):
         """Clean up GPIO resources when shutting down"""
-        self.relay1.close()
-        self.relay2.close()
-        self.closed_switch.close()
+        GPIO.cleanup()
