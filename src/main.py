@@ -136,7 +136,7 @@ def main():
                 parts = shell_cmd.split(":")
                 if len(parts) == 1:
                     # RESET - reset to current switch position (100 if closed, 0 if open)
-                    reset_pos = 100 if gate_drv.closed_switch.is_pressed else 0
+                    reset_pos = 100 if gate_drv.is_switch_pressed() else 0
                     print(f"shell cmd to reset gate position to {reset_pos}")
                     gate_drv.reset_posn_to(reset_pos)
                 elif len(parts) == 2:
