@@ -30,13 +30,24 @@ from datetime import datetime
 # signal(SIGPIPE,SIG_DFL)
 
 
-def write_gate_status(gate_drv:Gate_drv):
+def write_gate_status(gate_drv: Gate_drv):
     """Write current gate status to file for web interface"""
     try:
+        # Get comprehensive status from the gate object
+        gate_status = gate_drv.gate.get_status()
+
+        # Enhance with driver-specific information
         status = {
-            "position": gate_drv.get_posn(),
-            "closed_switch": gate_drv.is_switch_pressed(),
-            "open_switch": False,  # TODO: implement when open switch is installed
+            "position": gate_status["position"],
+            "target_position": gate_status["target_position"],
+            "is_opening": gate_status["is_opening"],
+            "is_closing": gate_status["is_closing"],
+            "is_moving": gate_status["is_moving"],
+            "open_disabled": gate_status["open_disabled"],
+            "closed_switch_pressed": gate_status["closed_switch_pressed"],
+            "open_switch_pressed": gate_status["open_switch_pressed"],
+            "errors": gate_status["errors"],
+            "diagnostic_messages": gate_status["diagnostic_messages"],
             "last_updated": datetime.now().isoformat(),
             "status": "Running"
         }
@@ -45,6 +56,26 @@ def write_gate_status(gate_drv:Gate_drv):
             json.dump(status, f, indent=2)
     except Exception as e:
         print(f"Failed to write status file: {e}")
+        # Write a minimal error status
+        error_status = {
+            "position": 0,
+            "target_position": 0,
+            "is_opening": False,
+            "is_closing": False,
+            "is_moving": False,
+            "open_disabled": False,
+            "closed_switch_pressed": False,
+            "open_switch_pressed": False,
+            "errors": [f"Status write error: {str(e)}"],
+            "diagnostic_messages": [],
+            "last_updated": datetime.now().isoformat(),
+            "status": "Error"
+        }
+        try:
+            with open("gate_status.json", "w") as f:
+                json.dump(error_status, f, indent=2)
+        except Exception:
+            pass  # If we can't even write the error status, just continue
 
 
 def check_command_file():
@@ -67,6 +98,7 @@ def main():
     other_error = False
     gate = Gate()
     gate_drv = Gate_drv(gate)
+    api = None
     if ENABLE_APP:
         api = Api()
     schedule = Schedule()
@@ -85,7 +117,7 @@ def main():
         while tick_100ms > 0:
             tick_100ms -= 1
 
-            if ENABLE_APP:
+            if ENABLE_APP and api:
                 if pipe_error is False and other_error is False:
                     try:
                         api.run()
@@ -131,6 +163,9 @@ def main():
             elif shell_cmd == "CLOSE":
                 print("shell cmd to close gate")
                 gate_drv.close()
+            elif shell_cmd == "CLEAR_ERRORS":
+                print("shell cmd to clear errors")
+                gate_drv.gate.clear_errors()
             elif shell_cmd and shell_cmd.startswith("RESET"):
                 # Handle reset commands: RESET or RESET:position
                 parts = shell_cmd.split(":")
@@ -155,9 +190,8 @@ def main():
             # Write status for web interface
             write_gate_status(gate_drv)
 
-            if ENABLE_APP:
+            if ENABLE_APP and api:
                 api.set_posn(gate_drv.get_posn())
-            write_gate_status(gate_drv)
 
 
 if __name__ == "__main__":

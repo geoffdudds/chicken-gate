@@ -11,36 +11,89 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Configuration
-STATUS_FILE = "gate_status.json"
-COMMAND_FILE = "gate_cmd.txt"
-
 def read_gate_status():
-    """Read current gate status from file"""
+    """Read current gate status from the status file written by main.py"""
     try:
-        if os.path.exists(STATUS_FILE):
-            with open(STATUS_FILE, 'r') as f:
-                return json.load(f)
-    except (IOError, json.JSONDecodeError):
-        pass
+        status_file = "gate_status.json"
+        if os.path.exists(status_file):
+            with open(status_file, "r") as f:
+                status = json.load(f)
 
-    # Default status if file doesn't exist or is invalid
-    return {
-        "position": 0,
-        "closed_switch": False,
-        "open_switch": False,
-        "last_updated": datetime.now().isoformat(),
-        "status": "Unknown"
-    }
+            # The new format should have all the fields we need
+            return {
+                "position": status.get("position", 0),
+                "target_position": status.get("target_position", 0),
+                "is_opening": status.get("is_opening", False),
+                "is_closing": status.get("is_closing", False),
+                "is_moving": status.get("is_moving", False),
+                "open_disabled": status.get("open_disabled", False),
+                "closed_switch_pressed": status.get("closed_switch_pressed", False),
+                "open_switch_pressed": status.get("open_switch_pressed", False),
+                "errors": status.get("errors", []),
+                "diagnostic_messages": status.get("diagnostic_messages", []),
+                "last_updated": status.get("last_updated", datetime.now().isoformat())
+            }
+        else:
+            # Return default status if file doesn't exist
+            return {
+                "position": 0,
+                "target_position": 0,
+                "is_opening": False,
+                "is_closing": False,
+                "is_moving": False,
+                "open_disabled": False,
+                "closed_switch_pressed": False,
+                "open_switch_pressed": False,
+                "errors": ["No status file found - is the gate system running?"],
+                "diagnostic_messages": [],
+                "last_updated": datetime.now().isoformat()
+            }
+    except Exception as e:
+        # Fallback status if there's an error reading the file
+        return {
+            "position": 0,
+            "target_position": 0,
+            "is_opening": False,
+            "is_closing": False,
+            "is_moving": False,
+            "open_disabled": False,
+            "closed_switch_pressed": False,
+            "open_switch_pressed": False,
+            "errors": [f"Error reading status: {str(e)}"],
+            "diagnostic_messages": [],
+            "last_updated": datetime.now().isoformat()
+        }
 
 def send_gate_command(command):
-    """Send a command to the gate process"""
+    """Send a command to the gate by writing to the command file"""
     try:
-        with open(COMMAND_FILE, 'w') as f:
-            f.write(command.upper())
-        return True
-    except IOError:
-        return False
+        command_upper = command.upper()
+
+        # Validate command
+        valid_commands = ['OPEN', 'CLOSE', 'RESET', 'CLEAR_ERRORS']
+
+        if command_upper.startswith('RESET:'):
+            # Handle RESET:position format
+            parts = command_upper.split(':')
+            if len(parts) == 2:
+                try:
+                    position = int(parts[1])
+                    if not (0 <= position <= 100):
+                        return False, "Position must be between 0 and 100"
+                except ValueError:
+                    return False, "Invalid position format"
+        elif command_upper not in valid_commands:
+            return False, f"Unknown command: {command}"
+
+        # Write command to file that main.py monitors
+        cmd_file = "gate_cmd.txt"
+        with open(cmd_file, "w") as f:
+            f.write(command_upper)
+
+        return True, f"Command '{command_upper}' sent to gate system"
+
+    except Exception as e:
+        return False, f"Failed to send command: {str(e)}"
 
 @app.route('/')
 def index():
@@ -62,7 +115,7 @@ def api_command():
         return jsonify({'success': False, 'error': 'No command provided'}), 400
 
     command = data['command'].upper()
-    valid_commands = ['OPEN', 'CLOSE', 'RESET']
+    valid_commands = ['OPEN', 'CLOSE', 'RESET', 'CLEAR_ERRORS']
 
     # Handle reset with position
     if command.startswith('RESET'):
@@ -77,18 +130,26 @@ def api_command():
     elif command not in valid_commands:
         return jsonify({'success': False, 'error': f'Invalid command. Valid commands: {", ".join(valid_commands)}'}), 400
 
-    success = send_gate_command(command)
+    result = send_gate_command(command)
+    success, message = result if isinstance(result, tuple) else (result, f'Command "{command}" processed')
 
     if success:
-        return jsonify({'success': True, 'message': f'Command "{command}" sent successfully'})
+        return jsonify({'success': True, 'message': message})
     else:
-        return jsonify({'success': False, 'error': 'Failed to send command'}), 500
+        return jsonify({'success': False, 'error': message}), 500
 
 @app.route('/api/history')
 def api_history():
     """API endpoint to get command history (if implemented later)"""
     # Placeholder for future command history feature
     return jsonify({'history': []})
+
+@app.route('/api/clear_diagnostics', methods=['POST'])
+def api_clear_diagnostics():
+    """API endpoint to clear diagnostic messages"""
+    # Note: With the current file-based system, diagnostics are managed by main.py
+    # This endpoint could be enhanced when diagnostic management is added to main.py
+    return jsonify({'success': True, 'message': 'Diagnostics clearing not yet implemented in file-based system'})
 
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist

@@ -174,6 +174,39 @@
         background: #e0a800;
       }
 
+      .btn-clear {
+        background: #17a2b8;
+        color: white;
+      }
+
+      .btn-clear:hover {
+        background: #138496;
+      }
+
+      .state-opening {
+        color: #28a745;
+      }
+
+      .state-closing {
+        color: #dc3545;
+      }
+
+      .state-stopped {
+        color: #6c757d;
+      }
+
+      .system-ok {
+        color: #28a745;
+      }
+
+      .system-error {
+        color: #dc3545;
+      }
+
+      .system-disabled {
+        color: #ffc107;
+      }
+
       .reset-controls {
         display: flex;
         gap: 10px;
@@ -224,6 +257,78 @@
         margin-top: 20px;
       }
 
+      .errors-section,
+      .diagnostics-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+      }
+
+      .errors-section {
+        border-left: 5px solid #dc3545;
+      }
+
+      .errors-section h2 {
+        color: #dc3545;
+        margin-bottom: 20px;
+      }
+
+      .diagnostics-section h2 {
+        color: #495057;
+        margin-bottom: 20px;
+      }
+
+      .errors-list {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      .error-item {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #f5c6cb;
+      }
+
+      .error-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .diagnostics-controls {
+        margin-bottom: 15px;
+      }
+
+      .diagnostics-log {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+      }
+
+      .log-entry {
+        padding: 5px 0;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      .log-entry.error {
+        color: #dc3545;
+        font-weight: bold;
+      }
+
       @media (max-width: 600px) {
         .container {
           margin: 10px;
@@ -266,13 +371,18 @@
           </div>
 
           <div class="status-card">
+            <h3>Gate State</h3>
+            <div class="status-value" id="gate-state">--</div>
+          </div>
+
+          <div class="status-card">
             <h3>Closed Switch</h3>
             <div class="status-value switch-value" id="closed-switch">--</div>
           </div>
 
           <div class="status-card">
-            <h3>Open Switch</h3>
-            <div class="status-value switch-value" id="open-switch">--</div>
+            <h3>System Status</h3>
+            <div class="status-value" id="system-status">--</div>
           </div>
         </div>
 
@@ -290,6 +400,10 @@
 
             <button class="btn btn-reset" onclick="sendCommand('RESET')">
               🔄 Reset Position
+            </button>
+
+            <button class="btn btn-clear" onclick="sendCommand('CLEAR_ERRORS')">
+              ✅ Clear Errors
             </button>
           </div>
 
@@ -311,6 +425,32 @@
           <div class="status-message" id="status-message"></div>
         </div>
 
+        <!-- Errors Section -->
+        <div class="errors-section" id="errors-section" style="display: none">
+          <h2>⚠️ Active Errors</h2>
+          <div class="errors-list" id="errors-list"></div>
+          <button
+            class="btn btn-clear"
+            onclick="sendCommand('CLEAR_ERRORS')"
+            style="margin-top: 15px"
+          >
+            ✅ Clear All Errors
+          </button>
+        </div>
+
+        <!-- Diagnostics Section -->
+        <div class="diagnostics-section">
+          <h2>📋 System Diagnostics</h2>
+          <div class="diagnostics-controls">
+            <button class="btn btn-clear" onclick="clearDiagnostics()">
+              🗑️ Clear Log
+            </button>
+          </div>
+          <div class="diagnostics-log" id="diagnostics-log">
+            <div class="log-entry">No diagnostic messages yet...</div>
+          </div>
+        </div>
+
         <div class="last-updated" id="last-updated">Last updated: --</div>
       </div>
     </div>
@@ -325,20 +465,51 @@
           const data = await response.json();
 
           // Update position
-          document.getElementById("position").textContent = data.position + "%";
+          document.getElementById("position").textContent =
+            Math.round(data.position) + "%";
           document.getElementById("position-bar").style.width =
             data.position + "%";
 
-          // Update switches
-          const closedSwitch = document.getElementById("closed-switch");
-          closedSwitch.textContent = data.closed_switch ? "CLOSED" : "OPEN";
-          closedSwitch.className =
-            "status-value switch-value" + (data.closed_switch ? " active" : "");
+          // Update gate state
+          const gateStateEl = document.getElementById("gate-state");
+          if (data.is_opening) {
+            gateStateEl.textContent = "OPENING";
+            gateStateEl.className = "status-value state-opening";
+          } else if (data.is_closing) {
+            gateStateEl.textContent = "CLOSING";
+            gateStateEl.className = "status-value state-closing";
+          } else {
+            gateStateEl.textContent = "STOPPED";
+            gateStateEl.className = "status-value state-stopped";
+          }
 
-          const openSwitch = document.getElementById("open-switch");
-          openSwitch.textContent = data.open_switch ? "ACTIVE" : "INACTIVE";
-          openSwitch.className =
-            "status-value switch-value" + (data.open_switch ? " active" : "");
+          // Update closed switch
+          const closedSwitch = document.getElementById("closed-switch");
+          closedSwitch.textContent = data.closed_switch_pressed
+            ? "CLOSED"
+            : "OPEN";
+          closedSwitch.className =
+            "status-value switch-value" +
+            (data.closed_switch_pressed ? " active" : "");
+
+          // Update system status
+          const systemStatusEl = document.getElementById("system-status");
+          if (data.errors && data.errors.length > 0) {
+            systemStatusEl.textContent = "ERROR";
+            systemStatusEl.className = "status-value system-error";
+          } else if (data.open_disabled) {
+            systemStatusEl.textContent = "DISABLED";
+            systemStatusEl.className = "status-value system-disabled";
+          } else {
+            systemStatusEl.textContent = "OK";
+            systemStatusEl.className = "status-value system-ok";
+          }
+
+          // Update errors section
+          updateErrorsSection(data.errors || []);
+
+          // Update diagnostics
+          updateDiagnostics(data.diagnostic_messages || []);
 
           // Update timestamp
           const lastUpdated = new Date(data.last_updated).toLocaleString();
@@ -404,6 +575,65 @@
         setTimeout(() => {
           messageEl.style.display = "none";
         }, 5000);
+      }
+
+      // Update errors section
+      function updateErrorsSection(errors) {
+        const errorsSection = document.getElementById("errors-section");
+        const errorsList = document.getElementById("errors-list");
+
+        if (errors.length > 0) {
+          errorsSection.style.display = "block";
+          errorsList.innerHTML = errors
+            .map((error) => `<div class="error-item">${error}</div>`)
+            .join("");
+        } else {
+          errorsSection.style.display = "none";
+        }
+      }
+
+      // Update diagnostics log
+      function updateDiagnostics(messages) {
+        const diagnosticsLog = document.getElementById("diagnostics-log");
+
+        if (messages.length === 0) {
+          diagnosticsLog.innerHTML =
+            '<div class="log-entry">No diagnostic messages yet...</div>';
+          return;
+        }
+
+        diagnosticsLog.innerHTML = messages
+          .slice()
+          .reverse() // Show newest first
+          .map((message) => {
+            const isError = message.includes("ERROR:");
+            return `<div class="log-entry${
+              isError ? " error" : ""
+            }">${message}</div>`;
+          })
+          .join("");
+
+        // Auto-scroll to top (newest messages)
+        diagnosticsLog.scrollTop = 0;
+      }
+
+      // Clear diagnostics
+      async function clearDiagnostics() {
+        try {
+          const response = await fetch("/api/clear_diagnostics", {
+            method: "POST",
+          });
+
+          if (response.ok) {
+            showMessage("Diagnostics cleared", "success");
+            updateStatus(); // Refresh to show cleared log
+          } else {
+            showMessage("Failed to clear diagnostics", "error");
+          }
+        } catch (error) {
+          console.error("Failed to clear diagnostics:", error);
+          showMessage("Failed to clear diagnostics", "error");
+        }
       }
 
       // Handle Enter key in reset position input
