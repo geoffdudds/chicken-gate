@@ -30,12 +30,12 @@ from datetime import datetime
 # signal(SIGPIPE,SIG_DFL)
 
 
-def write_gate_status(gate_drv):
+def write_gate_status(gate_drv:Gate_drv):
     """Write current gate status to file for web interface"""
     try:
         status = {
             "position": gate_drv.get_posn(),
-            "closed_switch": gate_drv.closed_switch.is_pressed,
+            "closed_switch": gate_drv.is_switch_pressed(),
             "open_switch": False,  # TODO: implement when open switch is installed
             "last_updated": datetime.now().isoformat(),
             "status": "Running"
