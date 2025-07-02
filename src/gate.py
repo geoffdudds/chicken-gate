@@ -21,7 +21,7 @@ class Gate:
     def tick(self, elapsed_time=0.1):
         # update position based on movement
         if self.__closed_switch_pressed:
-            self.__posn = min(90, self.__posn)
+            self.__posn = max(90, self.__posn)
         elif self.__open_switch_pressed:
             self.__posn = 0
         else:
