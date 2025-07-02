@@ -39,6 +39,11 @@ class Gate:
             if self.__motion_cmd is not Cmd.OPEN:
                 print("gate entering OPEN state")
             self.__motion_cmd = Cmd.OPEN
+
+            if self.get_posn() < 90 and self.__closed_switch_pressed:
+                msg: str = "gate position is below 90 but closed switch is pressed"
+                print(msg)
+                send_email(msg)
         elif self.__posn_cmd > self.__posn:
             if self.__motion_cmd is not Cmd.CLOSE:
                 print("gate entering CLOSE state")
