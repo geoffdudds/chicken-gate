@@ -47,11 +47,6 @@ def index():
     """Main page with gate control interface"""
     return render_template('index.html')
 
-@app.route('/static/manifest.json')
-def manifest():
-    """Serve the web app manifest for mobile installation"""
-    return app.send_static_file('manifest.json')
-
 @app.route('/api/status')
 def api_status():
     """API endpoint to get current gate status"""
