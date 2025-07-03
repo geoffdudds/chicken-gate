@@ -80,6 +80,9 @@ class Gate_drv:
     def close(self):
         self.gate.close()
 
+    def stop(self):
+        self.gate.stop()
+
     def __turn_cw(self):
         GPIO.output(self.RELAY1_PIN, GPIO.HIGH)
         GPIO.output(self.RELAY2_PIN, GPIO.LOW)

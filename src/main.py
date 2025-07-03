@@ -126,11 +126,14 @@ def main():
             # push shell commands to driver
             shell_cmd = check_command_file()
             if shell_cmd == "OPEN":
-                print("shell cmd to open gate")
+                print("cmd to open gate")
                 gate_drv.open()
             elif shell_cmd == "CLOSE":
-                print("shell cmd to close gate")
+                print("cmd to close gate")
                 gate_drv.close()
+            elif shell_cmd == "STOP":
+                print("cmd to stop gate")
+                gate_drv.stop()
             elif shell_cmd == "CLEAR_ERRORS":
                 print("shell cmd to clear errors")
                 gate_drv.gate.clear_errors()

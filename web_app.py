@@ -107,36 +107,21 @@ def api_status():
     return jsonify(status)
 
 @app.route('/api/command', methods=['POST'])
-def api_command():
-    """API endpoint to send commands to the gate"""
-    data = request.get_json()
+def handle_command():
+    """Handle gate commands from the web interface"""
+    try:
+        data = request.get_json()
+        command = data.get('command', '').upper()
 
-    if not data or 'command' not in data:
-        return jsonify({'success': False, 'error': 'No command provided'}), 400
+        success, message = send_gate_command(command)
 
-    command = data['command'].upper()
-    valid_commands = ['OPEN', 'CLOSE', 'RESET', 'CLEAR_ERRORS']
+        if success:
+            return jsonify({"success": True, "message": message})
+        else:
+            return jsonify({"success": False, "message": message}), 400
 
-    # Handle reset with position
-    if command.startswith('RESET'):
-        parts = command.split(':')
-        if len(parts) == 2:
-            try:
-                position = int(parts[1])
-                if not (0 <= position <= 100):
-                    return jsonify({'success': False, 'error': 'Position must be between 0 and 100'}), 400
-            except ValueError:
-                return jsonify({'success': False, 'error': 'Invalid position format'}), 400
-    elif command not in valid_commands:
-        return jsonify({'success': False, 'error': f'Invalid command. Valid commands: {", ".join(valid_commands)}'}), 400
-
-    result = send_gate_command(command)
-    success, message = result if isinstance(result, tuple) else (result, f'Command "{command}" processed')
-
-    if success:
-        return jsonify({'success': True, 'message': message})
-    else:
-        return jsonify({'success': False, 'error': message}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/history')
 def api_history():

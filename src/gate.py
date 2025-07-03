@@ -156,6 +156,11 @@ class Gate:
         self.__posn_cmd = self.__posn
         self.__add_diagnostic(f"position reset to {self.__posn}")
 
+    def stop(self):
+        """Stop gate movement immediately"""
+        self.__posn_cmd = self.__posn  # Set target to current position
+        self.__add_diagnostic("gate stop command received")
+
     def __add_error(self, error_msg: str):
         """Add an error message to the error list"""
         if error_msg not in self.__errors:
