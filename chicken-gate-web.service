@@ -1,0 +1,31 @@
+[Unit]
+Description=Chicken Gate Web Interface
+After=multi-user.target network-online.target chicken-gate.service
+Wants=network-online.target
+Requires=chicken-gate.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/sw/chicken-gate
+Environment=PATH=/home/pi/sw/chicken-gate/.venv/bin:$PATH
+Environment=FLASK_ENV=production
+Environment=FLASK_RUN_HOST=0.0.0.0
+Environment=FLASK_RUN_PORT=5000
+ExecStart=/home/pi/sw/chicken-gate/.venv/bin/python3 -u /home/pi/sw/chicken-gate/web_app.py
+Restart=always
+RestartSec=5s
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/pi/sw/chicken-gate
+
+# Network access
+PrivateNetwork=false
+
+[Install]
+WantedBy=multi-user.target
