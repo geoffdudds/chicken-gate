@@ -15,6 +15,8 @@ def test_status_writing():
         # Import the modules
         from gate import Gate
         from gate_drv import Gate_drv
+        from schedule import Schedule
+        from main import write_gate_status
 
         print("✅ Modules imported successfully")
 
@@ -33,8 +35,10 @@ def test_status_writing():
             print(f"  {key}: {value}")
 
         # Test writing status file
-        from main import write_gate_status
-        write_gate_status(gate)
+        # Create a schedule object
+        schedule = Schedule()
+
+        write_gate_status(gate, schedule)
 
         print("✅ Status file written")
 
