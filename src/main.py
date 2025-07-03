@@ -36,6 +36,9 @@ def write_gate_status(gate):
     """Write gate status to JSON file atomically"""
     try:
         status = gate.get_status()
+        # Add timestamp
+        status["last_updated"] = datetime.now().isoformat()
+
         # Write to temporary file first
         temp_file = STATUS_FILE + '.tmp'
         with open(temp_file, 'w') as f:
