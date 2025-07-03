@@ -28,29 +28,29 @@ html_debug = '''<!DOCTYPE html>
     <h1>Gate Status Debug</h1>
     <div id="raw-data"></div>
     <div id="position-test"></div>
-    
+
     <script>
     async function testAPI() {
         try {
             console.log('Fetching status...');
             const response = await fetch('/api/status');
             const data = await response.json();
-            
+
             console.log('Raw data:', data);
             document.getElementById('raw-data').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            
+
             // Test position update
             document.getElementById('position-test').innerHTML = 'Position: ' + data.position + '%';
-            
+
         } catch (error) {
             console.error('Error:', error);
             document.getElementById('raw-data').innerHTML = 'Error: ' + error.message;
         }
     }
-    
+
     // Test immediately
     testAPI();
-    
+
     // Test every 2 seconds
     setInterval(testAPI, 2000);
     </script>

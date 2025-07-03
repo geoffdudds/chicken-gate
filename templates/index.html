@@ -402,7 +402,9 @@
             <button id="openBtn" class="btn btn-open">🔓 Open Gate</button>
             <button id="closeBtn" class="btn btn-close">🔒 Close Gate</button>
             <button id="stopBtn" class="btn btn-stop">⏹️ Stop Gate</button>
-            <button id="resetBtn" class="btn btn-reset">🔄 Reset Position</button>
+            <button id="resetBtn" class="btn btn-reset">
+              🔄 Reset Position
+            </button>
             <button
               id="clearErrorsBtn"
               class="btn btn-clear"
@@ -410,6 +412,25 @@
             >
               ⚠️ Clear Errors
             </button>
+          </div>
+
+          <!-- Reset position input -->
+          <div class="reset-section">
+            <h3>Reset to Specific Position</h3>
+            <div class="reset-controls">
+              <input
+                type="number"
+                id="reset-position"
+                class="reset-input"
+                min="0"
+                max="100"
+                placeholder="0-100"
+                value="0"
+              />
+              <button id="resetToPositionBtn" class="btn btn-reset">
+                Set Position
+              </button>
+            </div>
           </div>
         </div>
 
@@ -537,7 +558,13 @@
 
       // Reset to specific position
       function resetToPosition() {
-        const position = document.getElementById("reset-position").value;
+        const positionInput = document.getElementById("reset-position");
+        if (!positionInput) {
+          console.error("Reset position input not found");
+          return;
+        }
+
+        const position = positionInput.value;
         if (position === "") {
           showMessage("Please enter a position (0-100)", "error");
           return;
@@ -625,20 +652,28 @@
       }
 
       // Control button handlers
-      document.getElementById('openBtn').onclick = () => sendCommand('OPEN');
-      document.getElementById('closeBtn').onclick = () => sendCommand('CLOSE');
-      document.getElementById('stopBtn').onclick = () => sendCommand('STOP');
-      document.getElementById('resetBtn').onclick = () => sendCommand('RESET');
-      document.getElementById('clearErrorsBtn').onclick = () => sendCommand('CLEAR_ERRORS');
+      document.getElementById("openBtn").onclick = () => sendCommand("OPEN");
+      document.getElementById("closeBtn").onclick = () => sendCommand("CLOSE");
+      document.getElementById("stopBtn").onclick = () => sendCommand("STOP");
+      document.getElementById("resetBtn").onclick = () => sendCommand("RESET");
+      document.getElementById("clearErrorsBtn").onclick = () =>
+        sendCommand("CLEAR_ERRORS");
 
       // Handle Enter key in reset position input
-      document
-        .getElementById("reset-position")
-        .addEventListener("keypress", function (e) {
+      const resetPositionInput = document.getElementById("reset-position");
+      if (resetPositionInput) {
+        resetPositionInput.addEventListener("keypress", function (e) {
           if (e.key === "Enter") {
             resetToPosition();
           }
         });
+      }
+
+      // Add click handler for reset to position button
+      const resetToPositionBtn = document.getElementById("resetToPositionBtn");
+      if (resetToPositionBtn) {
+        resetToPositionBtn.onclick = resetToPosition;
+      }
 
       // Start periodic status updates
       function startUpdates() {
