@@ -685,7 +685,7 @@
           openTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
           document.getElementById("gate-open-time").textContent =
             openTime.toLocaleTimeString([], {
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
             });
         } else {
@@ -698,7 +698,7 @@
           closeTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
           document.getElementById("gate-close-time").textContent =
             closeTime.toLocaleTimeString([], {
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
             });
         } else {
@@ -709,14 +709,14 @@
         if (schedule.dawn) {
           const dawn = new Date(schedule.dawn);
           document.getElementById("dawn-time").textContent =
-            dawn.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            dawn.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
         }
 
         if (schedule.sunrise) {
           const sunrise = new Date(schedule.sunrise);
           document.getElementById("sunrise-time").textContent =
             sunrise.toLocaleTimeString([], {
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
             });
         }
@@ -725,7 +725,7 @@
           const sunset = new Date(schedule.sunset);
           document.getElementById("sunset-time").textContent =
             sunset.toLocaleTimeString([], {
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
             });
         }
@@ -733,7 +733,7 @@
         if (schedule.dusk) {
           const dusk = new Date(schedule.dusk);
           document.getElementById("dusk-time").textContent =
-            dusk.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            dusk.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
         }
       }
 
