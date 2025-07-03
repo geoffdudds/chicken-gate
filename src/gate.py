@@ -19,6 +19,7 @@ class Gate:
         self.__errors = []  # List to store error messages
         self.__open_disabled = False  # Flag to disable opening when error occurs
         self.__diagnostic_messages = []  # List to store diagnostic/status messages
+        self.__manual_stop = False  # Flag for manual stop command
 
     def get_cmd(self) -> Cmd:
         return self.__motion_cmd
@@ -90,6 +91,13 @@ class Gate:
 
         # update target position (rx cmds)
 
+        # Check for manual stop first - overrides all other control
+        if self.__manual_stop:
+            if self.__motion_cmd != Cmd.STOP:
+                self.__add_diagnostic("gate entering STOP state (manual stop)")
+            self.__motion_cmd = Cmd.STOP
+            return  # Skip normal control logic
+
         # update state
         if self.__posn_cmd < self.__posn:
             # Don't allow opening if disabled due to error
@@ -141,6 +149,7 @@ class Gate:
 
     def open(self):
         """Open the gate if not disabled due to errors"""
+        self.__manual_stop = False  # Clear manual stop
         if not self.__open_disabled:
             self.__posn_cmd = 0
             self.__add_diagnostic("gate open command received")
@@ -148,6 +157,7 @@ class Gate:
             self.__add_diagnostic("gate open command rejected - errors present")
 
     def close(self):
+        self.__manual_stop = False  # Clear manual stop
         self.__posn_cmd = 100
         self.__add_diagnostic("gate close command received")
 
@@ -157,9 +167,10 @@ class Gate:
         self.__add_diagnostic(f"position reset to {self.__posn}")
 
     def stop(self):
-        """Stop gate movement immediately"""
-        self.__posn_cmd = self.__posn  # Set target to current position
-        self.__add_diagnostic("gate stop command received")
+        """Stop gate movement immediately and hold position"""
+        self.__manual_stop = True
+        self.__motion_cmd = Cmd.STOP
+        self.__add_diagnostic("gate stop command received - manual stop engaged")
 
     def __add_error(self, error_msg: str):
         """Add an error message to the error list"""
