@@ -25,57 +25,25 @@ import os
 import json
 from datetime import datetime
 
+# File paths for web interface communication
+STATUS_FILE = "gate_status.json"
 
 # from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
 
 
-def write_gate_status(gate_drv: Gate_drv):
-    """Write current gate status to file for web interface"""
+def write_gate_status(gate):
+    """Write gate status to JSON file atomically"""
     try:
-        # Get comprehensive status from the gate object
-        gate_status = gate_drv.gate.get_status()
-
-        # Enhance with driver-specific information
-        status = {
-            "position": gate_status["position"],
-            "target_position": gate_status["target_position"],
-            "is_opening": gate_status["is_opening"],
-            "is_closing": gate_status["is_closing"],
-            "is_moving": gate_status["is_moving"],
-            "open_disabled": gate_status["open_disabled"],
-            "closed_switch_pressed": gate_status["closed_switch_pressed"],
-            "open_switch_pressed": gate_status["open_switch_pressed"],
-            "errors": gate_status["errors"],
-            "diagnostic_messages": gate_status["diagnostic_messages"],
-            "last_updated": datetime.now().isoformat(),
-            "status": "Running"
-        }
-
-        with open("gate_status.json", "w") as f:
+        status = gate.get_status()
+        # Write to temporary file first
+        temp_file = STATUS_FILE + '.tmp'
+        with open(temp_file, 'w') as f:
             json.dump(status, f, indent=2)
+        # Atomic rename
+        os.rename(temp_file, STATUS_FILE)
     except Exception as e:
-        print(f"Failed to write status file: {e}")
-        # Write a minimal error status
-        error_status = {
-            "position": 0,
-            "target_position": 0,
-            "is_opening": False,
-            "is_closing": False,
-            "is_moving": False,
-            "open_disabled": False,
-            "closed_switch_pressed": False,
-            "open_switch_pressed": False,
-            "errors": [f"Status write error: {str(e)}"],
-            "diagnostic_messages": [],
-            "last_updated": datetime.now().isoformat(),
-            "status": "Error"
-        }
-        try:
-            with open("gate_status.json", "w") as f:
-                json.dump(error_status, f, indent=2)
-        except Exception:
-            pass  # If we can't even write the error status, just continue
+        print(f"Error writing status file: {e}")
 
 
 def check_command_file():

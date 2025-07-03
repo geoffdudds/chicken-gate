@@ -6,5 +6,4 @@ toml
 flask
 importlib-metadata
 typing-extensions
-black
 astral
