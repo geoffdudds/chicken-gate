@@ -32,13 +32,16 @@ STATUS_FILE = "gate_status.json"
 # signal(SIGPIPE,SIG_DFL)
 
 
-def write_gate_status(gate):
+def write_gate_status(gate, schedule):
     """Write gate status to JSON file atomically"""
     try:
         status = gate.get_status()
         # Add timestamp
         status["last_updated"] = datetime.now().isoformat()
-
+        
+        # Add schedule information
+        status["schedule"] = schedule.get_schedule_info()
+        
         # Write to temporary file first
         temp_file = STATUS_FILE + '.tmp'
         with open(temp_file, 'w') as f:
@@ -165,7 +168,7 @@ def main():
             gate_drv.tick()
 
             # Write status for web interface - pass the gate object, not gate_drv
-            write_gate_status(gate_drv.gate)
+            write_gate_status(gate_drv.gate, schedule)
 
             if ENABLE_APP and api:
                 api.set_posn(gate_drv.get_posn())

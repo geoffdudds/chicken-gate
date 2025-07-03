@@ -7,8 +7,8 @@ import os
 
 class Schedule:
     def __init__(self):
-        self.__dawn = None
-        self.__dusk = None
+        self.__open_time = None
+        self.__close_time = None
         self.__lift_job = None
         self.__lower_job = None
         self.gate_cmd = Cmd.NONE
@@ -33,6 +33,18 @@ class Schedule:
         self.gate_cmd = None
         return gate_cmd
 
+    def get_schedule_info(self):
+        """Get comprehensive schedule information for the web interface"""
+        return {
+            "dawn": self.__suntime.get_dawn().isoformat(),
+            "dusk": self.__suntime.get_dusk().isoformat(),
+            "sunrise": self.__suntime.get_sunrise().isoformat(),
+            "sunset": self.__suntime.get_sunset().isoformat(),
+            "gate_open_time": self.__open_time.strftime("%H:%M") if self.__open_time else "Unknown",
+            "gate_close_time": self.__close_time.strftime("%H:%M") if self.__close_time else "Unknown",
+            "next_update": "00:00 (midnight)"
+        }
+
     def __add_to_log(self, entry):
         print(entry)
 
@@ -41,15 +53,15 @@ class Schedule:
         os.system("/usr/bin/systemctl restart chicken-gate.service")
 
     def __update_schedule(self):
-        self.__update_dawn_and_dusk_times()
+        self.__update_open_and_close_times()
         self.__schedule_close()
         self.__schedule_open()
 
         self.__sched.print_jobs()
 
-    def __update_dawn_and_dusk_times(self):
-        self.__dawn = self.__suntime.get_sunrise()
-        self.__dusk = self.__suntime.get_dusk()
+    def __update_open_and_close_times(self):
+        self.__open_time = self.__suntime.get_sunrise()
+        self.__close_time = self.__suntime.get_dusk()
 
     def __close(self):
         self.__add_to_log("Executing scheduled close job...")
@@ -60,7 +72,6 @@ class Schedule:
         self.gate_cmd = Cmd.OPEN
 
     def __schedule_close(self):
-        lift_time = self.__dusk
         if self.__lift_job is not None:
             self.__lift_job.remove()
         self.__lift_job = self.__sched.add_job(
@@ -68,8 +79,8 @@ class Schedule:
             trigger="cron",
             replace_existing=True,
             id="1",
-            hour=lift_time.hour,
-            minute=lift_time.minute,
+            hour=self.__close_time.hour,
+            minute=self.__close_time.minute,
         )
 
     def __schedule_open(self):
@@ -80,6 +91,6 @@ class Schedule:
             trigger="cron",
             replace_existing=True,
             id="2",
-            hour=self.__dawn.hour,
-            minute=self.__dawn.minute,
+            hour=self.__open_time.hour,
+            minute=self.__open_time.minute,
         )

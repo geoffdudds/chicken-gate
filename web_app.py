@@ -106,6 +106,13 @@ def api_status():
     status = read_gate_status()
     return jsonify(status)
 
+@app.route('/api/schedule')
+def api_schedule():
+    """API endpoint to get schedule information"""
+    status = read_gate_status()
+    schedule_info = status.get('schedule', {})
+    return jsonify(schedule_info)
+
 @app.route('/api/command', methods=['POST'])
 def handle_command():
     """Handle gate commands from the web interface"""
