@@ -596,14 +596,17 @@
       function updateErrorsSection(errors) {
         const errorsSection = document.getElementById("errors-section");
         const errorsList = document.getElementById("errors-list");
+        const clearErrorsBtn = document.getElementById("clearErrorsBtn");
 
         if (errors.length > 0) {
           errorsSection.style.display = "block";
+          clearErrorsBtn.style.display = "inline-block"; // Show clear button when there are errors
           errorsList.innerHTML = errors
             .map((error) => `<div class="error-item">${error}</div>`)
             .join("");
         } else {
           errorsSection.style.display = "none";
+          clearErrorsBtn.style.display = "none"; // Hide clear button when no errors
         }
       }
 
