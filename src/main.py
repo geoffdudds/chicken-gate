@@ -140,6 +140,9 @@ def main():
             elif shell_cmd == "CLEAR_ERRORS":
                 print("shell cmd to clear errors")
                 gate_drv.gate.clear_errors()
+            elif shell_cmd == "CLEAR_DIAGNOSTICS":
+                print("shell cmd to clear diagnostics")
+                gate_drv.gate.clear_diagnostic_messages()
             elif shell_cmd and shell_cmd.startswith("RESET"):
                 # Handle reset commands: RESET or RESET:position
                 parts = shell_cmd.split(":")

@@ -70,7 +70,7 @@ def send_gate_command(command):
         command_upper = command.upper()
 
         # Validate command
-        valid_commands = ['OPEN', 'CLOSE', 'STOP', 'RESET', 'CLEAR_ERRORS']
+        valid_commands = ['OPEN', 'CLOSE', 'STOP', 'RESET', 'CLEAR_ERRORS', 'CLEAR_DIAGNOSTICS']
 
         if command_upper.startswith('RESET:'):
             # Handle RESET:position format
@@ -132,9 +132,11 @@ def api_history():
 @app.route('/api/clear_diagnostics', methods=['POST'])
 def api_clear_diagnostics():
     """API endpoint to clear diagnostic messages"""
-    # Note: With the current file-based system, diagnostics are managed by main.py
-    # This endpoint could be enhanced when diagnostic management is added to main.py
-    return jsonify({'success': True, 'message': 'Diagnostics clearing not yet implemented in file-based system'})
+    success, message = send_gate_command('CLEAR_DIAGNOSTICS')
+    if success:
+        return jsonify({'success': True, 'message': 'Diagnostic messages cleared'})
+    else:
+        return jsonify({'success': False, 'message': message}), 400
 
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
