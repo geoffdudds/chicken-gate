@@ -31,6 +31,7 @@ def read_gate_status():
                 "open_switch_pressed": status.get("open_switch_pressed", False),
                 "errors": status.get("errors", []),
                 "diagnostic_messages": status.get("diagnostic_messages", []),
+                "schedule": status.get("schedule", {}),
                 "last_updated": status.get("last_updated", datetime.now().isoformat())
             }
         else:
@@ -46,6 +47,7 @@ def read_gate_status():
                 "open_switch_pressed": False,
                 "errors": ["No status file found - is the gate system running?"],
                 "diagnostic_messages": [],
+                "schedule": {},
                 "last_updated": datetime.now().isoformat()
             }
     except Exception as e:
@@ -61,6 +63,7 @@ def read_gate_status():
             "open_switch_pressed": False,
             "errors": [f"Error reading status: {str(e)}"],
             "diagnostic_messages": [],
+            "schedule": {},
             "last_updated": datetime.now().isoformat()
         }
 
