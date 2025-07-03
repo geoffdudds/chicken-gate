@@ -236,6 +236,112 @@
         border-color: #667eea;
       }
 
+      /* Button Styles */
+      .control-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        padding: 15px 25px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        min-width: 140px;
+        text-align: center;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-open {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+      }
+
+      .btn-open:hover {
+        background: linear-gradient(135deg, #218838, #1aa87a);
+      }
+
+      .btn-close {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+      }
+
+      .btn-close:hover {
+        background: linear-gradient(135deg, #c82333, #a71e2a);
+      }
+
+      .btn-stop {
+        background: linear-gradient(135deg, #fd7e14, #e5650e);
+        color: white;
+      }
+
+      .btn-stop:hover {
+        background: linear-gradient(135deg, #e5650e, #cc580b);
+      }
+
+      .btn-reset {
+        background: linear-gradient(135deg, #6f42c1, #5a359a);
+        color: white;
+      }
+
+      .btn-reset:hover {
+        background: linear-gradient(135deg, #5a359a, #4e2a84);
+      }
+
+      .btn-clear {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+        color: white;
+      }
+
+      .btn-clear:hover {
+        background: linear-gradient(135deg, #e0a800, #d39e00);
+      }
+
+      /* Mobile button improvements */
+      @media (max-width: 768px) {
+        .btn {
+          padding: 20px 30px;
+          font-size: 1.2em;
+          min-width: 160px;
+          margin: 5px;
+        }
+
+        .control-buttons {
+          gap: 10px;
+        }
+      }
+
+      /* Extra small screens - make buttons even bigger */
+      @media (max-width: 480px) {
+        .btn {
+          padding: 25px 35px;
+          font-size: 1.3em;
+          min-width: 180px;
+          margin: 8px;
+        }
+
+        .control-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+
       .status-message {
         padding: 15px;
         border-radius: 10px;
@@ -572,11 +678,32 @@
 
       // Update schedule information
       function updateScheduleInfo(schedule) {
-        // Update gate open/close times
-        document.getElementById("gate-open-time").textContent =
-          schedule.gate_open_time || "--";
-        document.getElementById("gate-close-time").textContent =
-          schedule.gate_close_time || "--";
+        // Update gate open/close times - convert to AM/PM format
+        if (schedule.gate_open_time && schedule.gate_open_time !== "--") {
+          const [hours, minutes] = schedule.gate_open_time.split(":");
+          const openTime = new Date();
+          openTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          document.getElementById("gate-open-time").textContent =
+            openTime.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+        } else {
+          document.getElementById("gate-open-time").textContent = "--";
+        }
+
+        if (schedule.gate_close_time && schedule.gate_close_time !== "--") {
+          const [hours, minutes] = schedule.gate_close_time.split(":");
+          const closeTime = new Date();
+          closeTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          document.getElementById("gate-close-time").textContent =
+            closeTime.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+        } else {
+          document.getElementById("gate-close-time").textContent = "--";
+        }
 
         // Update sun times
         if (schedule.dawn) {
