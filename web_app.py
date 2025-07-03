@@ -70,7 +70,7 @@ def send_gate_command(command):
         command_upper = command.upper()
 
         # Validate command
-        valid_commands = ['OPEN', 'CLOSE', 'RESET', 'CLEAR_ERRORS']
+        valid_commands = ['OPEN', 'CLOSE', 'STOP', 'RESET', 'CLEAR_ERRORS']
 
         if command_upper.startswith('RESET:'):
             # Handle RESET:position format
