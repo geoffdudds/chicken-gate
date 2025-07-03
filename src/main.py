@@ -155,8 +155,8 @@ def main():
 
             gate_drv.tick()
 
-            # Write status for web interface
-            write_gate_status(gate_drv)
+            # Write status for web interface - pass the gate object, not gate_drv
+            write_gate_status(gate_drv.gate)
 
             if ENABLE_APP and api:
                 api.set_posn(gate_drv.get_posn())
