@@ -153,6 +153,24 @@ if __name__ == '__main__':
     os.makedirs('templates', exist_ok=True)
     os.makedirs('static', exist_ok=True)
 
+    # Check if we should run on port 5000 (development mode)
+    import sys
+    port = 5000 if '--port5000' in sys.argv else 80
+
     print("Starting chicken gate web interface...")
-    print("Open your browser to http://localhost:5000")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if port == 80:
+        print("Running on port 80 (default) - web interface will be available at:")
+        print("  http://chicken-gate (if using Tailscale MagicDNS)")
+        print("  http://YOUR_PI_IP")
+        print("  http://localhost (if running locally)")
+        print("")
+        print("NOTE: Running on port 80 requires sudo privileges!")
+        print("If you get a permission error, run with: sudo python3 web_app.py")
+        print("For development mode (port 5000), use: python3 web_app.py --port5000")
+    else:
+        print(f"Running on port {port} (development mode) - web interface will be available at:")
+        print(f"  http://chicken-gate:{port} (if using Tailscale MagicDNS)")
+        print(f"  http://YOUR_PI_IP:{port}")
+        print(f"  http://localhost:{port} (if running locally)")
+
+    app.run(host='0.0.0.0', port=port, debug=True if port == 5000 else False)
