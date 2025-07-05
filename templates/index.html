@@ -118,60 +118,100 @@
       }
 
       .controls h2 {
-        color: #495057;
-        margin-bottom: 20px;
         text-align: center;
+        margin-bottom: 25px;
+        color: #495057;
       }
 
-      .button-grid {
+      /* Schedule Section Styles */
+      .schedule-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+      }
+
+      .schedule-section h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #495057;
+      }
+
+      .schedule-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .schedule-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+
+      .schedule-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .schedule-card h3 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+      }
+
+      .schedule-time {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .schedule-label {
+        color: #6c757d;
+        font-size: 0.9em;
+      }
+
+      .sun-times {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        border: 2px solid #e9ecef;
+      }
+
+      .sun-times h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #495057;
+      }
+
+      .sun-times-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 15px;
-        margin-bottom: 20px;
       }
 
-      .btn {
-        padding: 15px 25px;
-        border: none;
-        border-radius: 10px;
-        font-size: 1.1em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+      .sun-time-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
       }
 
-      .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      .sun-label {
+        font-weight: 500;
+        color: #495057;
       }
 
-      .btn-open {
-        background: #28a745;
-        color: white;
-      }
-
-      .btn-open:hover {
-        background: #218838;
-      }
-
-      .btn-close {
-        background: #dc3545;
-        color: white;
-      }
-
-      .btn-close:hover {
-        background: #c82333;
-      }
-
-      .btn-reset {
-        background: #ffc107;
-        color: #212529;
-      }
-
-      .btn-reset:hover {
-        background: #e0a800;
+      .sun-value {
+        font-weight: bold;
+        color: #667eea;
       }
 
       .reset-controls {
@@ -194,6 +234,112 @@
       .reset-input:focus {
         outline: none;
         border-color: #667eea;
+      }
+
+      /* Button Styles */
+      .control-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        padding: 15px 25px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        min-width: 140px;
+        text-align: center;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-open {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+      }
+
+      .btn-open:hover {
+        background: linear-gradient(135deg, #218838, #1aa87a);
+      }
+
+      .btn-close {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+      }
+
+      .btn-close:hover {
+        background: linear-gradient(135deg, #c82333, #a71e2a);
+      }
+
+      .btn-stop {
+        background: linear-gradient(135deg, #fd7e14, #e5650e);
+        color: white;
+      }
+
+      .btn-stop:hover {
+        background: linear-gradient(135deg, #e5650e, #cc580b);
+      }
+
+      .btn-reset {
+        background: linear-gradient(135deg, #6f42c1, #5a359a);
+        color: white;
+      }
+
+      .btn-reset:hover {
+        background: linear-gradient(135deg, #5a359a, #4e2a84);
+      }
+
+      .btn-clear {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+        color: white;
+      }
+
+      .btn-clear:hover {
+        background: linear-gradient(135deg, #e0a800, #d39e00);
+      }
+
+      /* Mobile button improvements */
+      @media (max-width: 768px) {
+        .btn {
+          padding: 20px 30px;
+          font-size: 1.2em;
+          min-width: 160px;
+          margin: 5px;
+        }
+
+        .control-buttons {
+          gap: 10px;
+        }
+      }
+
+      /* Extra small screens - make buttons even bigger */
+      @media (max-width: 480px) {
+        .btn {
+          padding: 25px 35px;
+          font-size: 1.3em;
+          min-width: 180px;
+          margin: 8px;
+        }
+
+        .control-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
       }
 
       .status-message {
@@ -222,6 +368,78 @@
         color: #6c757d;
         font-size: 0.9em;
         margin-top: 20px;
+      }
+
+      .errors-section,
+      .diagnostics-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+      }
+
+      .errors-section {
+        border-left: 5px solid #dc3545;
+      }
+
+      .errors-section h2 {
+        color: #dc3545;
+        margin-bottom: 20px;
+      }
+
+      .diagnostics-section h2 {
+        color: #495057;
+        margin-bottom: 20px;
+      }
+
+      .errors-list {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      .error-item {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #f5c6cb;
+      }
+
+      .error-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .diagnostics-controls {
+        margin-bottom: 15px;
+      }
+
+      .diagnostics-log {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+      }
+
+      .log-entry {
+        padding: 5px 0;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      .log-entry.error {
+        color: #dc3545;
+        font-weight: bold;
       }
 
       @media (max-width: 600px) {
@@ -266,49 +484,123 @@
           </div>
 
           <div class="status-card">
+            <h3>Gate State</h3>
+            <div class="status-value" id="gate-state">--</div>
+          </div>
+
+          <div class="status-card">
             <h3>Closed Switch</h3>
             <div class="status-value switch-value" id="closed-switch">--</div>
           </div>
 
           <div class="status-card">
-            <h3>Open Switch</h3>
-            <div class="status-value switch-value" id="open-switch">--</div>
+            <h3>System Status</h3>
+            <div class="status-value" id="system-status">--</div>
+          </div>
+        </div>
+
+        <!-- Schedule Section -->
+        <div class="schedule-section">
+          <h2>🌅 Daily Schedule</h2>
+          <div class="schedule-grid">
+            <div class="schedule-card">
+              <h3>Gate Opens</h3>
+              <div class="schedule-time" id="gate-open-time">--</div>
+              <div class="schedule-label">at Sunrise</div>
+            </div>
+
+            <div class="schedule-card">
+              <h3>Gate Closes</h3>
+              <div class="schedule-time" id="gate-close-time">--</div>
+              <div class="schedule-label">at Dusk</div>
+            </div>
+          </div>
+
+          <div class="sun-times">
+            <h3>☀️ Sun Times for Today</h3>
+            <div class="sun-times-grid">
+              <div class="sun-time-item">
+                <span class="sun-label">Dawn:</span>
+                <span class="sun-value" id="dawn-time">--</span>
+              </div>
+              <div class="sun-time-item">
+                <span class="sun-label">Sunrise:</span>
+                <span class="sun-value" id="sunrise-time">--</span>
+              </div>
+              <div class="sun-time-item">
+                <span class="sun-label">Sunset:</span>
+                <span class="sun-value" id="sunset-time">--</span>
+              </div>
+              <div class="sun-time-item">
+                <span class="sun-label">Dusk:</span>
+                <span class="sun-value" id="dusk-time">--</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="controls">
           <h2>Gate Controls</h2>
-
-          <div class="button-grid">
-            <button class="btn btn-open" onclick="sendCommand('OPEN')">
-              🔓 Open Gate
-            </button>
-
-            <button class="btn btn-close" onclick="sendCommand('CLOSE')">
-              🔒 Close Gate
-            </button>
-
-            <button class="btn btn-reset" onclick="sendCommand('RESET')">
+          <div class="control-buttons">
+            <button id="openBtn" class="btn btn-open">🔓 Open Gate</button>
+            <button id="closeBtn" class="btn btn-close">🔒 Close Gate</button>
+            <button id="stopBtn" class="btn btn-stop">⏹️ Stop Gate</button>
+            <button id="resetBtn" class="btn btn-reset">
               🔄 Reset Position
             </button>
-          </div>
-
-          <div class="reset-controls">
-            <label for="reset-position">Reset to position:</label>
-            <input
-              type="number"
-              id="reset-position"
-              class="reset-input"
-              min="0"
-              max="100"
-              placeholder="0-100"
-            />
-            <button class="btn btn-reset" onclick="resetToPosition()">
-              Set Position
+            <button
+              id="clearErrorsBtn"
+              class="btn btn-clear"
+              style="display: none"
+            >
+              ⚠️ Clear Errors
             </button>
           </div>
 
-          <div class="status-message" id="status-message"></div>
+          <!-- Reset position input -->
+          <div class="reset-section">
+            <h3>Reset to Specific Position</h3>
+            <div class="reset-controls">
+              <input
+                type="number"
+                id="reset-position"
+                class="reset-input"
+                min="0"
+                max="100"
+                placeholder="0-100"
+                value="0"
+              />
+              <button id="resetToPositionBtn" class="btn btn-reset">
+                Set Position
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Errors Section -->
+        <div class="errors-section" id="errors-section" style="display: none">
+          <h2>⚠️ Active Errors</h2>
+          <div class="errors-list" id="errors-list"></div>
+          <button
+            class="btn btn-clear"
+            onclick="sendCommand('CLEAR_ERRORS')"
+            style="margin-top: 15px"
+          >
+            ✅ Clear All Errors
+          </button>
+        </div>
+
+        <!-- Diagnostics Section -->
+        <div class="diagnostics-section">
+          <h2>📋 System Diagnostics</h2>
+          <div class="diagnostics-controls">
+            <button class="btn btn-clear" onclick="clearDiagnostics()">
+              🗑️ Clear Log
+            </button>
+          </div>
+          <div class="diagnostics-log" id="diagnostics-log">
+            <div class="log-entry">No diagnostic messages yet...</div>
+          </div>
         </div>
 
         <div class="last-updated" id="last-updated">Last updated: --</div>
@@ -325,28 +617,123 @@
           const data = await response.json();
 
           // Update position
-          document.getElementById("position").textContent = data.position + "%";
+          document.getElementById("position").textContent =
+            Math.round(data.position) + "%";
           document.getElementById("position-bar").style.width =
             data.position + "%";
 
-          // Update switches
-          const closedSwitch = document.getElementById("closed-switch");
-          closedSwitch.textContent = data.closed_switch ? "CLOSED" : "OPEN";
-          closedSwitch.className =
-            "status-value switch-value" + (data.closed_switch ? " active" : "");
+          // Update gate state
+          const gateStateEl = document.getElementById("gate-state");
+          if (data.is_opening) {
+            gateStateEl.textContent = "OPENING";
+            gateStateEl.className = "status-value state-opening";
+          } else if (data.is_closing) {
+            gateStateEl.textContent = "CLOSING";
+            gateStateEl.className = "status-value state-closing";
+          } else {
+            gateStateEl.textContent = "STOPPED";
+            gateStateEl.className = "status-value state-stopped";
+          }
 
-          const openSwitch = document.getElementById("open-switch");
-          openSwitch.textContent = data.open_switch ? "ACTIVE" : "INACTIVE";
-          openSwitch.className =
-            "status-value switch-value" + (data.open_switch ? " active" : "");
+          // Update closed switch
+          const closedSwitch = document.getElementById("closed-switch");
+          closedSwitch.textContent = data.closed_switch_pressed
+            ? "CLOSED"
+            : "OPEN";
+          closedSwitch.className =
+            "status-value switch-value" +
+            (data.closed_switch_pressed ? " active" : "");
+
+          // Update system status
+          const systemStatusEl = document.getElementById("system-status");
+          if (data.errors && data.errors.length > 0) {
+            systemStatusEl.textContent = "ERROR";
+            systemStatusEl.className = "status-value system-error";
+          } else if (data.open_disabled) {
+            systemStatusEl.textContent = "DISABLED";
+            systemStatusEl.className = "status-value system-disabled";
+          } else {
+            systemStatusEl.textContent = "OK";
+            systemStatusEl.className = "status-value system-ok";
+          }
+
+          // Update errors section
+          updateErrorsSection(data.errors || []);
+
+          // Update diagnostics
+          updateDiagnostics(data.diagnostic_messages || []);
 
           // Update timestamp
           const lastUpdated = new Date(data.last_updated).toLocaleString();
           document.getElementById("last-updated").textContent =
             "Last updated: " + lastUpdated;
+
+          // Update schedule information
+          updateScheduleInfo(data.schedule || {});
         } catch (error) {
           console.error("Failed to update status:", error);
           showMessage("Failed to update status", "error");
+        }
+      }
+
+      // Update schedule information
+      function updateScheduleInfo(schedule) {
+        // Update gate open/close times - convert to AM/PM format
+        if (schedule.gate_open_time && schedule.gate_open_time !== "--") {
+          const [hours, minutes] = schedule.gate_open_time.split(":");
+          const openTime = new Date();
+          openTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          document.getElementById("gate-open-time").textContent =
+            openTime.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+        } else {
+          document.getElementById("gate-open-time").textContent = "--";
+        }
+
+        if (schedule.gate_close_time && schedule.gate_close_time !== "--") {
+          const [hours, minutes] = schedule.gate_close_time.split(":");
+          const closeTime = new Date();
+          closeTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          document.getElementById("gate-close-time").textContent =
+            closeTime.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+        } else {
+          document.getElementById("gate-close-time").textContent = "--";
+        }
+
+        // Update sun times
+        if (schedule.dawn) {
+          const dawn = new Date(schedule.dawn);
+          document.getElementById("dawn-time").textContent =
+            dawn.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        }
+
+        if (schedule.sunrise) {
+          const sunrise = new Date(schedule.sunrise);
+          document.getElementById("sunrise-time").textContent =
+            sunrise.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+        }
+
+        if (schedule.sunset) {
+          const sunset = new Date(schedule.sunset);
+          document.getElementById("sunset-time").textContent =
+            sunset.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+        }
+
+        if (schedule.dusk) {
+          const dusk = new Date(schedule.dusk);
+          document.getElementById("dusk-time").textContent =
+            dusk.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
         }
       }
 
@@ -378,7 +765,13 @@
 
       // Reset to specific position
       function resetToPosition() {
-        const position = document.getElementById("reset-position").value;
+        const positionInput = document.getElementById("reset-position");
+        if (!positionInput) {
+          console.error("Reset position input not found");
+          return;
+        }
+
+        const position = positionInput.value;
         if (position === "") {
           showMessage("Please enter a position (0-100)", "error");
           return;
@@ -406,14 +799,91 @@
         }, 5000);
       }
 
+      // Update errors section
+      function updateErrorsSection(errors) {
+        const errorsSection = document.getElementById("errors-section");
+        const errorsList = document.getElementById("errors-list");
+        const clearErrorsBtn = document.getElementById("clearErrorsBtn");
+
+        if (errors.length > 0) {
+          errorsSection.style.display = "block";
+          clearErrorsBtn.style.display = "inline-block"; // Show clear button when there are errors
+          errorsList.innerHTML = errors
+            .map((error) => `<div class="error-item">${error}</div>`)
+            .join("");
+        } else {
+          errorsSection.style.display = "none";
+          clearErrorsBtn.style.display = "none"; // Hide clear button when no errors
+        }
+      }
+
+      // Update diagnostics log
+      function updateDiagnostics(messages) {
+        const diagnosticsLog = document.getElementById("diagnostics-log");
+
+        if (messages.length === 0) {
+          diagnosticsLog.innerHTML =
+            '<div class="log-entry">No diagnostic messages yet...</div>';
+          return;
+        }
+
+        diagnosticsLog.innerHTML = messages
+          .slice()
+          .reverse() // Show newest first
+          .map((message) => {
+            const isError = message.includes("ERROR:");
+            return `<div class="log-entry${
+              isError ? " error" : ""
+            }">${message}</div>`;
+          })
+          .join("");
+
+        // Auto-scroll to top (newest messages)
+        diagnosticsLog.scrollTop = 0;
+      }
+
+      // Clear diagnostics
+      async function clearDiagnostics() {
+        try {
+          const response = await fetch("/api/clear_diagnostics", {
+            method: "POST",
+          });
+
+          if (response.ok) {
+            showMessage("Diagnostics cleared", "success");
+            updateStatus(); // Refresh to show cleared log
+          } else {
+            showMessage("Failed to clear diagnostics", "error");
+          }
+        } catch (error) {
+          console.error("Failed to clear diagnostics:", error);
+          showMessage("Failed to clear diagnostics", "error");
+        }
+      }
+
+      // Control button handlers
+      document.getElementById("openBtn").onclick = () => sendCommand("OPEN");
+      document.getElementById("closeBtn").onclick = () => sendCommand("CLOSE");
+      document.getElementById("stopBtn").onclick = () => sendCommand("STOP");
+      document.getElementById("resetBtn").onclick = () => sendCommand("RESET");
+      document.getElementById("clearErrorsBtn").onclick = () =>
+        sendCommand("CLEAR_ERRORS");
+
       // Handle Enter key in reset position input
-      document
-        .getElementById("reset-position")
-        .addEventListener("keypress", function (e) {
+      const resetPositionInput = document.getElementById("reset-position");
+      if (resetPositionInput) {
+        resetPositionInput.addEventListener("keypress", function (e) {
           if (e.key === "Enter") {
             resetToPosition();
           }
         });
+      }
+
+      // Add click handler for reset to position button
+      const resetToPositionBtn = document.getElementById("resetToPositionBtn");
+      if (resetToPositionBtn) {
+        resetToPositionBtn.onclick = resetToPosition;
+      }
 
       // Start periodic status updates
       function startUpdates() {

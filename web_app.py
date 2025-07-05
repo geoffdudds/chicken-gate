@@ -11,36 +11,92 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Configuration
-STATUS_FILE = "gate_status.json"
-COMMAND_FILE = "gate_cmd.txt"
-
 def read_gate_status():
-    """Read current gate status from file"""
+    """Read current gate status from the status file written by main.py"""
     try:
-        if os.path.exists(STATUS_FILE):
-            with open(STATUS_FILE, 'r') as f:
-                return json.load(f)
-    except (IOError, json.JSONDecodeError):
-        pass
+        status_file = "gate_status.json"
+        if os.path.exists(status_file):
+            with open(status_file, "r") as f:
+                status = json.load(f)
 
-    # Default status if file doesn't exist or is invalid
-    return {
-        "position": 0,
-        "closed_switch": False,
-        "open_switch": False,
-        "last_updated": datetime.now().isoformat(),
-        "status": "Unknown"
-    }
+            # The new format should have all the fields we need
+            return {
+                "position": status.get("position", 0),
+                "target_position": status.get("target_position", 0),
+                "is_opening": status.get("is_opening", False),
+                "is_closing": status.get("is_closing", False),
+                "is_moving": status.get("is_moving", False),
+                "open_disabled": status.get("open_disabled", False),
+                "closed_switch_pressed": status.get("closed_switch_pressed", False),
+                "open_switch_pressed": status.get("open_switch_pressed", False),
+                "errors": status.get("errors", []),
+                "diagnostic_messages": status.get("diagnostic_messages", []),
+                "schedule": status.get("schedule", {}),
+                "last_updated": status.get("last_updated", datetime.now().isoformat())
+            }
+        else:
+            # Return default status if file doesn't exist
+            return {
+                "position": 0,
+                "target_position": 0,
+                "is_opening": False,
+                "is_closing": False,
+                "is_moving": False,
+                "open_disabled": False,
+                "closed_switch_pressed": False,
+                "open_switch_pressed": False,
+                "errors": ["No status file found - is the gate system running?"],
+                "diagnostic_messages": [],
+                "schedule": {},
+                "last_updated": datetime.now().isoformat()
+            }
+    except Exception as e:
+        # Fallback status if there's an error reading the file
+        return {
+            "position": 0,
+            "target_position": 0,
+            "is_opening": False,
+            "is_closing": False,
+            "is_moving": False,
+            "open_disabled": False,
+            "closed_switch_pressed": False,
+            "open_switch_pressed": False,
+            "errors": [f"Error reading status: {str(e)}"],
+            "diagnostic_messages": [],
+            "schedule": {},
+            "last_updated": datetime.now().isoformat()
+        }
 
 def send_gate_command(command):
-    """Send a command to the gate process"""
+    """Send a command to the gate by writing to the command file"""
     try:
-        with open(COMMAND_FILE, 'w') as f:
-            f.write(command.upper())
-        return True
-    except IOError:
-        return False
+        command_upper = command.upper()
+
+        # Validate command
+        valid_commands = ['OPEN', 'CLOSE', 'STOP', 'RESET', 'CLEAR_ERRORS', 'CLEAR_DIAGNOSTICS']
+
+        if command_upper.startswith('RESET:'):
+            # Handle RESET:position format
+            parts = command_upper.split(':')
+            if len(parts) == 2:
+                try:
+                    position = int(parts[1])
+                    if not (0 <= position <= 100):
+                        return False, "Position must be between 0 and 100"
+                except ValueError:
+                    return False, "Invalid position format"
+        elif command_upper not in valid_commands:
+            return False, f"Unknown command: {command}"
+
+        # Write command to file that main.py monitors
+        cmd_file = "gate_cmd.txt"
+        with open(cmd_file, "w") as f:
+            f.write(command_upper)
+
+        return True, f"Command '{command_upper}' sent to gate system"
+
+    except Exception as e:
+        return False, f"Failed to send command: {str(e)}"
 
 @app.route('/')
 def index():
@@ -53,36 +109,29 @@ def api_status():
     status = read_gate_status()
     return jsonify(status)
 
+@app.route('/api/schedule')
+def api_schedule():
+    """API endpoint to get schedule information"""
+    status = read_gate_status()
+    schedule_info = status.get('schedule', {})
+    return jsonify(schedule_info)
+
 @app.route('/api/command', methods=['POST'])
-def api_command():
-    """API endpoint to send commands to the gate"""
-    data = request.get_json()
+def handle_command():
+    """Handle gate commands from the web interface"""
+    try:
+        data = request.get_json()
+        command = data.get('command', '').upper()
 
-    if not data or 'command' not in data:
-        return jsonify({'success': False, 'error': 'No command provided'}), 400
+        success, message = send_gate_command(command)
 
-    command = data['command'].upper()
-    valid_commands = ['OPEN', 'CLOSE', 'RESET']
+        if success:
+            return jsonify({"success": True, "message": message})
+        else:
+            return jsonify({"success": False, "message": message}), 400
 
-    # Handle reset with position
-    if command.startswith('RESET'):
-        parts = command.split(':')
-        if len(parts) == 2:
-            try:
-                position = int(parts[1])
-                if not (0 <= position <= 100):
-                    return jsonify({'success': False, 'error': 'Position must be between 0 and 100'}), 400
-            except ValueError:
-                return jsonify({'success': False, 'error': 'Invalid position format'}), 400
-    elif command not in valid_commands:
-        return jsonify({'success': False, 'error': f'Invalid command. Valid commands: {", ".join(valid_commands)}'}), 400
-
-    success = send_gate_command(command)
-
-    if success:
-        return jsonify({'success': True, 'message': f'Command "{command}" sent successfully'})
-    else:
-        return jsonify({'success': False, 'error': 'Failed to send command'}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route('/api/history')
 def api_history():
@@ -90,11 +139,38 @@ def api_history():
     # Placeholder for future command history feature
     return jsonify({'history': []})
 
+@app.route('/api/clear_diagnostics', methods=['POST'])
+def api_clear_diagnostics():
+    """API endpoint to clear diagnostic messages"""
+    success, message = send_gate_command('CLEAR_DIAGNOSTICS')
+    if success:
+        return jsonify({'success': True, 'message': 'Diagnostic messages cleared'})
+    else:
+        return jsonify({'success': False, 'message': message}), 400
+
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
     os.makedirs('templates', exist_ok=True)
     os.makedirs('static', exist_ok=True)
 
+    # Check if we should run on port 5000 (development mode)
+    import sys
+    port = 5000 if '--port5000' in sys.argv else 80
+
     print("Starting chicken gate web interface...")
-    print("Open your browser to http://localhost:5000")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if port == 80:
+        print("Running on port 80 (default) - web interface will be available at:")
+        print("  http://chicken-gate (if using Tailscale MagicDNS)")
+        print("  http://YOUR_PI_IP")
+        print("  http://localhost (if running locally)")
+        print("")
+        print("NOTE: Running on port 80 requires sudo privileges!")
+        print("If you get a permission error, run with: sudo python3 web_app.py")
+        print("For development mode (port 5000), use: python3 web_app.py --port5000")
+    else:
+        print(f"Running on port {port} (development mode) - web interface will be available at:")
+        print(f"  http://chicken-gate:{port} (if using Tailscale MagicDNS)")
+        print(f"  http://YOUR_PI_IP:{port}")
+        print(f"  http://localhost:{port} (if running locally)")
+
+    app.run(host='0.0.0.0', port=port, debug=True if port == 5000 else False)

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python3
 """
 Startup script for the chicken gate system with web interface.
 This script starts both the main gate control process and the web server.
@@ -16,7 +16,7 @@ def start_gate_process():
     return subprocess.Popen([
         sys.executable,
         os.path.join('src', 'main.py')
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 def start_web_server():
     """Start the web server"""
@@ -24,7 +24,7 @@ def start_web_server():
     return subprocess.Popen([
         sys.executable,
         'web_app.py'
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 def signal_handler(sig, frame):
     """Handle shutdown signals"""
@@ -37,6 +37,28 @@ def signal_handler(sig, frame):
         web_process.terminate()
 
     sys.exit(0)
+
+def check_process_output():
+    """Check for any error output from processes"""
+    global gate_process, web_process
+
+    if gate_process and gate_process.poll() is not None:
+        # Gate process has stopped
+        stdout, _ = gate_process.communicate()
+        if stdout:
+            print("❌ Gate process output:")
+            print(stdout)
+        return "gate"
+
+    if web_process and web_process.poll() is not None:
+        # Web process has stopped
+        stdout, _ = web_process.communicate()
+        if stdout:
+            print("❌ Web server output:")
+            print(stdout)
+        return "web"
+
+    return None
 
 def main():
     global gate_process, web_process
@@ -67,13 +89,9 @@ def main():
     try:
         # Monitor processes
         while True:
-            # Check if processes are still running
-            if gate_process.poll() is not None:
-                print("❌ Gate process stopped unexpectedly")
-                break
-
-            if web_process.poll() is not None:
-                print("❌ Web server stopped unexpectedly")
+            failed_process = check_process_output()
+            if failed_process:
+                print(f"❌ {failed_process.title()} process stopped unexpectedly")
                 break
 
             time.sleep(5)

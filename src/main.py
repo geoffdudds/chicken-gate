@@ -7,11 +7,16 @@ todo: make run as module so imports can work with pytest and program execution
 
 import time
 
-time.sleep(60)
+ENABLE_APP = False
+
+if ENABLE_APP:
+    # wait for os to establish internet etc
+    time.sleep(60)
+
 
 from gate import Gate
 from schedule import Schedule
-from api import Api
+if ENABLE_APP: from api import Api
 from gate_drv import Gate_drv
 from gate_cmd import Cmd
 import errno
@@ -20,27 +25,31 @@ import os
 import json
 from datetime import datetime
 
-ENABLE_APP = True
+# File paths for web interface communication
+STATUS_FILE = "gate_status.json"
 
 # from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
 
 
-def write_gate_status(gate_drv):
-    """Write current gate status to file for web interface"""
+def write_gate_status(gate, schedule):
+    """Write gate status to JSON file atomically"""
     try:
-        status = {
-            "position": gate_drv.get_posn(),
-            "closed_switch": gate_drv.closed_switch.is_pressed,
-            "open_switch": False,  # TODO: implement when open switch is installed
-            "last_updated": datetime.now().isoformat(),
-            "status": "Running"
-        }
-
-        with open("gate_status.json", "w") as f:
+        status = gate.get_status()
+        # Add timestamp
+        status["last_updated"] = datetime.now().isoformat()
+        
+        # Add schedule information
+        status["schedule"] = schedule.get_schedule_info()
+        
+        # Write to temporary file first
+        temp_file = STATUS_FILE + '.tmp'
+        with open(temp_file, 'w') as f:
             json.dump(status, f, indent=2)
+        # Atomic rename
+        os.rename(temp_file, STATUS_FILE)
     except Exception as e:
-        print(f"Failed to write status file: {e}")
+        print(f"Error writing status file: {e}")
 
 
 def check_command_file():
@@ -63,6 +72,7 @@ def main():
     other_error = False
     gate = Gate()
     gate_drv = Gate_drv(gate)
+    api = None
     if ENABLE_APP:
         api = Api()
     schedule = Schedule()
@@ -81,7 +91,7 @@ def main():
         while tick_100ms > 0:
             tick_100ms -= 1
 
-            if ENABLE_APP:
+            if ENABLE_APP and api:
                 if pipe_error is False and other_error is False:
                     try:
                         api.run()
@@ -122,17 +132,26 @@ def main():
             # push shell commands to driver
             shell_cmd = check_command_file()
             if shell_cmd == "OPEN":
-                print("shell cmd to open gate")
+                print("cmd to open gate")
                 gate_drv.open()
             elif shell_cmd == "CLOSE":
-                print("shell cmd to close gate")
+                print("cmd to close gate")
                 gate_drv.close()
+            elif shell_cmd == "STOP":
+                print("cmd to stop gate")
+                gate_drv.stop()
+            elif shell_cmd == "CLEAR_ERRORS":
+                print("shell cmd to clear errors")
+                gate_drv.gate.clear_errors()
+            elif shell_cmd == "CLEAR_DIAGNOSTICS":
+                print("shell cmd to clear diagnostics")
+                gate_drv.gate.clear_diagnostic_messages()
             elif shell_cmd and shell_cmd.startswith("RESET"):
                 # Handle reset commands: RESET or RESET:position
                 parts = shell_cmd.split(":")
                 if len(parts) == 1:
                     # RESET - reset to current switch position (100 if closed, 0 if open)
-                    reset_pos = 100 if gate_drv.closed_switch.is_pressed else 0
+                    reset_pos = 100 if gate_drv.is_switch_pressed() else 0
                     print(f"shell cmd to reset gate position to {reset_pos}")
                     gate_drv.reset_posn_to(reset_pos)
                 elif len(parts) == 2:
@@ -148,12 +167,11 @@ def main():
 
             gate_drv.tick()
 
-            # Write status for web interface
-            write_gate_status(gate_drv)
+            # Write status for web interface - pass the gate object, not gate_drv
+            write_gate_status(gate_drv.gate, schedule)
 
-            if ENABLE_APP:
+            if ENABLE_APP and api:
                 api.set_posn(gate_drv.get_posn())
-            write_gate_status(gate_drv)
 
 
 if __name__ == "__main__":

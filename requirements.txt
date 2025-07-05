@@ -1,7 +1,9 @@
 suntime
 apscheduler
 RPi.GPIO
-gpiozero
 blynk-library-python
 toml
 flask
+importlib-metadata
+typing-extensions
+astral
