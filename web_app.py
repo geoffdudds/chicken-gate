@@ -158,17 +158,27 @@ def api_clear_diagnostics():
 def camera_snapshot():
     """Get a snapshot from the camera"""
     try:
-        # Try the Tapo snapshot URL
-        snapshot_url = f"http://{CAMERA_IP}/stream/snapshot.jpg"
+        # Try different snapshot URLs for TP-Link Tapo cameras
+        possible_urls = [
+            f"http://{CAMERA_IP}/stream/snapshot.jpg",  # Generic snapshot
+            f"http://{CAMERA_IP}/tmpfs/auto.jpg",       # Tapo internal snapshot
+            f"http://{CAMERA_IP}/snapshot.cgi",         # CGI-based snapshot
+            f"http://{CAMERA_IP}/image/jpeg.cgi",       # Alternative format
+        ]
 
-        # Try to get snapshot without authentication first
-        response = requests.get(snapshot_url, timeout=5)
+        for snapshot_url in possible_urls:
+            try:
+                print(f"Trying snapshot URL: {snapshot_url}")
+                response = requests.get(snapshot_url, timeout=10,
+                                      auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
+                if response.status_code == 200 and len(response.content) > 1000:  # Basic check for valid image
+                    print(f"Success with snapshot URL: {snapshot_url}")
+                    return Response(response.content, mimetype='image/jpeg')
+            except Exception as e:
+                print(f"Failed snapshot URL {snapshot_url}: {e}")
+                continue
 
-        if response.status_code == 200:
-            return Response(response.content, mimetype='image/jpeg')
-        else:
-            # If that fails, return a placeholder image
-            return jsonify({"error": "Camera not accessible"}), 404
+        return jsonify({"error": "Camera not accessible"}), 404
 
     except Exception as e:
         print(f"Camera error: {e}")
@@ -176,22 +186,24 @@ def camera_snapshot():
 
 @app.route('/api/camera/stream')
 def camera_stream():
-    """Proxy camera MJPEG stream"""
+    """Proxy camera MJPEG stream or fall back to snapshot stream"""
     try:
-        # Common MJPEG stream URLs for Tapo cameras
+        # TP-Link Tapo cameras typically don't support direct MJPEG streaming without authentication
+        # Let's try a few common URLs but expect to fall back to snapshot streaming
         possible_urls = [
-            f"http://{CAMERA_IP}/stream/1",  # Tapo direct stream
-            f"http://{CAMERA_IP}/videostream.cgi?resolution=8&framerate=15",  # Alternative format
-            f"http://{CAMERA_IP}/video.cgi",  # Basic video stream
-            f"http://{CAMERA_IP}:80/onvif/snapshot",  # ONVIF format
+            f"http://{CAMERA_IP}/stream/1",  # Generic stream endpoint
+            f"http://{CAMERA_IP}/video.mjpg",  # Common MJPEG endpoint
+            f"http://{CAMERA_IP}/mjpeg/1",  # Alternative MJPEG
+            f"http://{CAMERA_IP}/cgi-bin/mjpg/video.cgi",  # CGI-based stream
         ]
 
         for stream_url in possible_urls:
             try:
                 print(f"Trying camera stream URL: {stream_url}")
-                response = requests.get(stream_url, stream=True, timeout=10)
-                if response.status_code == 200:
-                    print(f"Success with URL: {stream_url}")
+                response = requests.get(stream_url, stream=True, timeout=5,
+                                      auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
+                if response.status_code == 200 and 'image' in response.headers.get('content-type', '').lower():
+                    print(f"Success with MJPEG URL: {stream_url}")
                     def generate():
                         for chunk in response.iter_content(chunk_size=1024):
                             if chunk:
@@ -203,13 +215,14 @@ def camera_stream():
                 print(f"Failed {stream_url}: {e}")
                 continue
 
-        # If all stream URLs fail, fall back to snapshot-based "stream"
-        print("All stream URLs failed, falling back to snapshot stream")
+        # Most Tapo cameras require their mobile app or special protocols
+        # Fall back to snapshot-based "stream" which works more reliably
+        print("No direct MJPEG stream available, using snapshot-based stream")
         return snapshot_stream()
 
     except Exception as e:
         print(f"Camera stream error: {e}")
-        return jsonify({"error": "Camera stream failed"}), 500
+        return snapshot_stream()  # Always fall back to snapshot stream
 
 def snapshot_stream():
     """Create a pseudo-stream using snapshots if live stream isn't available"""
@@ -218,18 +231,88 @@ def snapshot_stream():
     def generate():
         while True:
             try:
-                snapshot_url = f"http://{CAMERA_IP}/stream/snapshot.jpg"
-                response = requests.get(snapshot_url, timeout=5)
-                if response.status_code == 200:
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + response.content + b'\r\n')
+                # Try the same snapshot URLs as the snapshot endpoint
+                possible_urls = [
+                    f"http://{CAMERA_IP}/stream/snapshot.jpg",
+                    f"http://{CAMERA_IP}/tmpfs/auto.jpg",
+                    f"http://{CAMERA_IP}/snapshot.cgi",
+                    f"http://{CAMERA_IP}/image/jpeg.cgi",
+                ]
+
+                success = False
+                for snapshot_url in possible_urls:
+                    try:
+                        response = requests.get(snapshot_url, timeout=5,
+                                              auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
+                        if response.status_code == 200 and len(response.content) > 1000:
+                            yield (b'--frame\r\n'
+                                   b'Content-Type: image/jpeg\r\n\r\n' + response.content + b'\r\n')
+                            success = True
+                            break
+                    except Exception:
+                        continue
+
+                if not success:
+                    # If no snapshot worked, wait longer before retrying
+                    time.sleep(3)
                 else:
-                    time.sleep(1)  # Wait before retrying
-            except Exception:
-                time.sleep(2)  # Wait longer on error
+                    # Update every 2 seconds for smooth "streaming"
+                    time.sleep(2)
+
+            except Exception as e:
+                print(f"Snapshot stream error: {e}")
+                time.sleep(5)  # Wait longer on error
 
     return Response(generate(),
                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/api/camera/debug')
+def camera_debug():
+    """Debug endpoint to test camera connectivity"""
+    try:
+        debug_info = {
+            "camera_ip": CAMERA_IP,
+            "timestamp": datetime.now().isoformat(),
+            "tests": []
+        }
+
+        # Test different URLs
+        test_urls = [
+            f"http://{CAMERA_IP}/stream/snapshot.jpg",
+            f"http://{CAMERA_IP}/tmpfs/auto.jpg",
+            f"http://{CAMERA_IP}/snapshot.cgi",
+            f"http://{CAMERA_IP}/image/jpeg.cgi",
+            f"http://{CAMERA_IP}/stream/1",
+            f"http://{CAMERA_IP}/video.mjpg",
+            f"http://{CAMERA_IP}",  # Just test basic connectivity
+        ]
+
+        for url in test_urls:
+            test_result = {
+                "url": url,
+                "status": "unknown",
+                "response_code": None,
+                "content_type": None,
+                "content_size": 0,
+                "error": None
+            }
+
+            try:
+                response = requests.get(url, timeout=5)
+                test_result["status"] = "success" if response.status_code == 200 else "failed"
+                test_result["response_code"] = response.status_code
+                test_result["content_type"] = response.headers.get('content-type', 'unknown')
+                test_result["content_size"] = len(response.content)
+            except Exception as e:
+                test_result["status"] = "error"
+                test_result["error"] = str(e)
+
+            debug_info["tests"].append(test_result)
+
+        return jsonify(debug_info)
+
+    except Exception as e:
+        return jsonify({"error": f"Debug failed: {e}"}), 500
 
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist

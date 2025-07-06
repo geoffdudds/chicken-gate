@@ -646,6 +646,9 @@
               <button class="btn btn-camera" onclick="refreshCamera()">
                 🔄 Restart Stream
               </button>
+              <button class="btn btn-camera" onclick="debugCamera()">
+                🔍 Debug Camera
+              </button>
               <a
                 href="http://192.168.0.135"
                 target="_blank"
@@ -988,6 +991,63 @@
         cameraImg.src = streamUrl + "?t=" + new Date().getTime();
 
         showMessage("Camera restarted", "success");
+      }
+
+      // Debug camera connectivity
+      async function debugCamera() {
+        try {
+          showMessage("Testing camera connectivity...", "success");
+
+          const response = await fetch("/api/camera/debug");
+          const debugInfo = await response.json();
+
+          console.log("Camera Debug Info:", debugInfo);
+
+          // Show debug results in a more user-friendly way
+          let message = `Camera Debug Results:\n`;
+          message += `Camera IP: ${debugInfo.camera_ip}\n\n`;
+
+          debugInfo.tests.forEach((test, index) => {
+            message += `Test ${index + 1}: ${test.url}\n`;
+            message += `Status: ${test.status}\n`;
+            if (test.response_code) {
+              message += `Response: ${test.response_code}\n`;
+            }
+            if (test.content_type) {
+              message += `Content: ${test.content_type}\n`;
+            }
+            if (test.content_size > 0) {
+              message += `Size: ${test.content_size} bytes\n`;
+            }
+            if (test.error) {
+              message += `Error: ${test.error}\n`;
+            }
+            message += `\n`;
+          });
+
+          // For now, just show in console and alert
+          // In a real implementation, you might want a modal dialog
+          alert(message);
+
+          // Also show which URLs are working
+          const workingUrls = debugInfo.tests.filter(
+            (t) => t.status === "success" && t.content_size > 1000
+          );
+          if (workingUrls.length > 0) {
+            showMessage(
+              `Found ${workingUrls.length} working camera URL(s) - check console for details`,
+              "success"
+            );
+          } else {
+            showMessage(
+              "No working camera URLs found - camera may be offline",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Camera debug failed:", error);
+          showMessage("Camera debug failed: " + error.message, "error");
+        }
       }
 
       // Check camera connection periodically
