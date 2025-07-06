@@ -14,8 +14,8 @@ app = Flask(__name__)
 
 # Camera configuration
 CAMERA_IP = "192.168.0.135"
-CAMERA_USERNAME = "admin"  # Try admin as default username for Tapo
-CAMERA_PASSWORD = "admin"  # Try admin as default password
+CAMERA_USERNAME = "chickencam"   # Your Tapo camera username
+CAMERA_PASSWORD = "password"     # Your Tapo camera password
 
 # Common ports for IP cameras (focus on working ones from your test)
 CAMERA_PORTS = [554, 443, 8443, 80, 8080, 88, 1935]
@@ -171,82 +171,112 @@ def api_clear_diagnostics():
 
 @app.route('/api/camera/snapshot')
 def camera_snapshot():
-    """Get a snapshot from the camera or return a placeholder"""
+    """Get a snapshot from the camera using RTSP"""
     try:
-        # TP-Link Tapo cameras typically don't support direct HTTP snapshot access
-        # They usually require the Tapo app or ONVIF/RTSP protocols with proper authentication
+        import cv2
 
-        # Try a few HTTP snapshot URLs just in case
-        test_urls = [
-            f"http://{CAMERA_IP}/tmpfs/auto.jpg",
-            f"http://{CAMERA_IP}/jpg/image.jpg",
-            f"http://{CAMERA_IP}/snapshot.jpg",
-        ]
+        # Use the working RTSP URL with authentication
+        rtsp_url = f"rtsp://{CAMERA_USERNAME}:{CAMERA_PASSWORD}@{CAMERA_IP}:554/stream1"
 
-        for url in test_urls:
-            try:
-                print(f"Trying snapshot URL: {url}")
-                response = requests.get(url, timeout=3,
-                                      auth=(CAMERA_USERNAME, CAMERA_PASSWORD))
-                if response.status_code == 200 and len(response.content) > 1000:
-                    print(f"Success with snapshot URL: {url}")
-                    return Response(response.content, mimetype='image/jpeg')
-            except Exception as e:
-                if "Connection refused" not in str(e):
-                    print(f"Failed {url}: {e}")
-                continue
+        print(f"Capturing frame from RTSP: {rtsp_url}")
 
-        # Return a placeholder image with camera info instead of an error
+        # Open video capture
+        cap = cv2.VideoCapture(rtsp_url)
+
+        if cap.isOpened():
+            # Read a frame
+            ret, frame = cap.read()
+            if ret:
+                # Encode frame as JPEG
+                success, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                if success:
+                    cap.release()
+                    return Response(buffer.tobytes(), mimetype='image/jpeg')
+                else:
+                    print("Failed to encode frame as JPEG")
+            else:
+                print("Failed to capture frame from RTSP stream")
+        else:
+            print("Failed to open RTSP stream")
+
+        cap.release()
+
+        # Fall back to placeholder if RTSP fails
         return create_placeholder_image()
 
+    except ImportError:
+        print("OpenCV not available, using placeholder")
+        return create_placeholder_image()
     except Exception as e:
-        print(f"Camera error: {e}")
+        print(f"RTSP camera error: {e}")
         return create_placeholder_image()
 
 def create_placeholder_image():
-    """Create a placeholder image when camera is not accessible via HTTP"""
-    import io
-    from PIL import Image, ImageDraw, ImageFont
-
+    """Create a placeholder image when camera is not accessible"""
     try:
+        from PIL import Image, ImageDraw, ImageFont
+        import io
+        from datetime import datetime
+
         # Create a simple placeholder image
-        img = Image.new('RGB', (640, 480))
-        img.paste((44, 62, 80), [0, 0, 640, 480])  # Fill with dark blue-gray color
+        width, height = 640, 480
+        img = Image.new('RGB', (width, height), color='#2c3e50')
         draw = ImageDraw.Draw(img)
 
-        # Try to use a default font, fall back to basic if not available
+        # Use default font (avoid font file dependencies)
         try:
-            font = ImageFont.truetype("arial.ttf", 24)
-            small_font = ImageFont.truetype("arial.ttf", 16)
-        except Exception:
             font = ImageFont.load_default()
-            small_font = ImageFont.load_default()
+        except:
+            font = None
 
-        # Draw text
-        text1 = "📷 TP-Link Tapo Camera"
-        text2 = f"IP: {CAMERA_IP}"
-        text3 = "Camera requires Tapo app"
-        text4 = "or RTSP/ONVIF protocol"
-        text5 = "for live streaming"
+        # Camera info text
+        lines = [
+            "📷 RTSP Camera",
+            f"Tapo Camera at {CAMERA_IP}",
+            "RTSP Stream: Available",
+            "Credentials: chickencam/password",
+            f"Updated: {datetime.now().strftime('%H:%M:%S')}"
+        ]
 
-        # Get text size and center it
-        bbox1 = draw.textbbox((0, 0), text1, font=font)
-        bbox2 = draw.textbbox((0, 0), text2, font=small_font)
-        bbox3 = draw.textbbox((0, 0), text3, font=small_font)
-        bbox4 = draw.textbbox((0, 0), text4, font=small_font)
-        bbox5 = draw.textbbox((0, 0), text5, font=small_font)
+        # Calculate starting Y position to center text block
+        line_height = 40
+        total_height = len(lines) * line_height
+        y_start = (height - total_height) // 2
 
-        x1 = (640 - (bbox1[2] - bbox1[0])) // 2
-        x2 = (640 - (bbox2[2] - bbox2[0])) // 2
-        x3 = (640 - (bbox3[2] - bbox3[0])) // 2
-        x4 = (640 - (bbox4[2] - bbox4[0])) // 2
-        x5 = (640 - (bbox5[2] - bbox5[0])) // 2
+        # Draw each line centered
+        for i, line in enumerate(lines):
+            if font:
+                bbox = draw.textbbox((0, 0), line, font=font)
+                text_width = bbox[2] - bbox[0]
+            else:
+                text_width = len(line) * 8  # Rough estimate
 
-        draw.text((x1, 180), text1, fill='white', font=font)
-        draw.text((x2, 220), text2, fill=(189, 195, 199), font=small_font)  # Light gray
-        draw.text((x3, 260), text3, fill=(189, 195, 199), font=small_font)
-        draw.text((x4, 280), text4, fill=(189, 195, 199), font=small_font)
-        draw.text((x5, 300), text5, fill=(189, 195, 199), font=small_font)
+            x = (width - text_width) // 2
+            y = y_start + i * line_height
+
+            # Different colors for different lines
+            if i == 0:
+                color = '#e74c3c'  # Red for offline
+            elif i == 2:
+                color = '#27ae60'  # Green for available port
+            elif i == 3:
+                color = '#f39c12'  # Orange for not supported
+            else:
+                color = '#ecf0f1'  # Light gray for info
+
+            draw.text((x, y), line, fill=color, font=font)
+
+        # Convert to JPEG bytes
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=85)
+        img_byte_arr.seek(0)
+
+        return Response(img_byte_arr.getvalue(), mimetype='image/jpeg')
+
+    except Exception as e:
+        print(f"Error creating placeholder: {e}")
+        # Return a simple JSON response if image creation fails
+        return jsonify({"error": "Camera placeholder unavailable"}), 500
 
         # Save to bytes
         img_io = io.BytesIO()
@@ -262,17 +292,69 @@ def create_placeholder_image():
 
 @app.route('/api/camera/stream')
 def camera_stream():
-    """Proxy camera MJPEG stream or fall back to snapshot stream"""
+    """Stream camera via RTSP snapshots"""
     try:
-        # TP-Link Tapo cameras typically don't support direct MJPEG streaming without authentication
-        # Most require the Tapo app or RTSP/ONVIF protocols
-        print("Tapo cameras typically require RTSP or Tapo app for streaming")
-        print("Falling back to placeholder image stream")
-        return placeholder_stream()
-
+        print("Using RTSP snapshot stream for live camera feed")
+        return rtsp_snapshot_stream()
     except Exception as e:
         print(f"Camera stream error: {e}")
         return placeholder_stream()
+
+def rtsp_snapshot_stream():
+    """Create a stream using RTSP snapshots"""
+    import time
+
+    def generate():
+        while True:
+            try:
+                import cv2
+
+                # Use the working RTSP URL with authentication
+                rtsp_url = f"rtsp://{CAMERA_USERNAME}:{CAMERA_PASSWORD}@{CAMERA_IP}:554/stream1"
+
+                # Open video capture
+                cap = cv2.VideoCapture(rtsp_url)
+
+                if cap.isOpened():
+                    # Read a frame
+                    ret, frame = cap.read()
+                    if ret:
+                        # Encode frame as JPEG
+                        success, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                        if success:
+                            yield (b'--frame\r\n'
+                                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+                        cap.release()
+                        # Update every 2 seconds for live feel
+                        time.sleep(2)
+                        continue
+
+                cap.release()
+
+                # If RTSP fails, fall back to placeholder for this frame
+                placeholder_response = create_placeholder_image()
+                if hasattr(placeholder_response, 'get_data'):
+                    image_data = placeholder_response.get_data()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
+
+                time.sleep(3)  # Wait longer on error
+
+            except ImportError:
+                # OpenCV not available, use placeholder
+                placeholder_response = create_placeholder_image()
+                if hasattr(placeholder_response, 'get_data'):
+                    image_data = placeholder_response.get_data()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
+                time.sleep(5)
+
+            except Exception as e:
+                print(f"RTSP stream error: {e}")
+                time.sleep(5)
+
+    return Response(generate(),
+                   mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def placeholder_stream():
     """Create a stream showing placeholder images"""
