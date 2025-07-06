@@ -228,11 +228,11 @@ def create_rtsp_info_image():
         except Exception:
             font = None
 
-        # Camera info text
+        # Camera info text (avoid Unicode emojis that cause encoding issues)
         lines = [
-            "✅ RTSP Camera Available",
+            "[OK] RTSP Camera Available",
             f"Tapo Camera at {CAMERA_IP}",
-            "RTSP Test: ✅ SUCCESSFUL",
+            "RTSP Test: SUCCESSFUL",
             "Resolution: 1280x720 @ 15fps",
             "OpenCV: Not available on Pi Zero",
             "",
@@ -263,7 +263,7 @@ def create_rtsp_info_image():
             x = (width - text_width) // 2
 
             # Different colors for different types of lines
-            if "✅" in line:
+            if "[OK]" in line or "SUCCESSFUL" in line:
                 color = '#ffffff'  # White for success
             elif "RTSP Test" in line:
                 color = '#ffffff'  # White for test result
