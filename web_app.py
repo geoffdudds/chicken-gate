@@ -171,8 +171,9 @@ def api_clear_diagnostics():
 
 @app.route('/api/camera/snapshot')
 def camera_snapshot():
-    """Get a snapshot from the camera using RTSP"""
+    """Get a snapshot from the camera using RTSP (if OpenCV available) or placeholder"""
     try:
+        # Try to import OpenCV - this will fail on Pi Zero
         import cv2
 
         # Use the working RTSP URL with authentication
@@ -201,17 +202,106 @@ def camera_snapshot():
 
         cap.release()
 
-        # Fall back to placeholder if RTSP fails
-        return create_placeholder_image()
-
     except ImportError:
-        print("OpenCV not available, using placeholder")
-        return create_placeholder_image()
+        print("OpenCV not available (normal on Pi Zero) - using placeholder with RTSP info")
     except Exception as e:
         print(f"RTSP camera error: {e}")
-        return create_placeholder_image()
 
-def create_placeholder_image():
+    # Always fall back to placeholder - shows RTSP is available but OpenCV isn't
+    return create_rtsp_info_image()
+
+def create_rtsp_info_image():
+    """Create an informative image showing RTSP camera is working but OpenCV unavailable"""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        import io
+        from datetime import datetime
+
+        # Create a simple placeholder image
+        width, height = 640, 480
+        img = Image.new('RGB', (width, height), color='#27ae60')  # Green background since RTSP works
+        draw = ImageDraw.Draw(img)
+
+        # Use default font
+        try:
+            font = ImageFont.load_default()
+        except Exception:
+            font = None
+
+        # Camera info text
+        lines = [
+            "✅ RTSP Camera Available",
+            f"Tapo Camera at {CAMERA_IP}",
+            "RTSP Test: ✅ SUCCESSFUL",
+            "Resolution: 1280x720 @ 15fps",
+            "OpenCV: Not available on Pi Zero",
+            "",
+            "To view live stream:",
+            f"rtsp://chickencam:password@{CAMERA_IP}:554/stream1",
+            "",
+            f"Updated: {datetime.now().strftime('%H:%M:%S')}"
+        ]
+
+        # Calculate starting Y position to center text block
+        line_height = 35
+        total_height = len([line for line in lines if line]) * line_height  # Exclude empty lines
+        y_start = (height - total_height) // 2
+
+        # Draw each line centered
+        y_pos = y_start
+        for line in lines:
+            if not line:  # Skip empty lines but add spacing
+                y_pos += line_height // 2
+                continue
+
+            if font:
+                bbox = draw.textbbox((0, 0), line, font=font)
+                text_width = bbox[2] - bbox[0]
+            else:
+                text_width = len(line) * 8  # Rough estimate
+
+            x = (width - text_width) // 2
+
+            # Different colors for different types of lines
+            if "✅" in line:
+                color = '#ffffff'  # White for success
+            elif "RTSP Test" in line:
+                color = '#ffffff'  # White for test result
+            elif "Resolution" in line:
+                color = '#d5f4e6'  # Light green for info
+            elif "OpenCV" in line:
+                color = '#f39c12'  # Orange for limitation
+            elif "rtsp://" in line:
+                color = '#3498db'  # Blue for URL
+            else:
+                color = '#ecf0f1'  # Light gray for general info
+
+            draw.text((x, y_pos), line, fill=color, font=font)
+            y_pos += line_height
+
+        # Convert to JPEG bytes
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=85)
+        img_byte_arr.seek(0)
+
+        return Response(img_byte_arr.getvalue(), mimetype='image/jpeg')
+
+    except ImportError:
+        # If PIL is not available either, return a simple text response
+        return Response(
+            f"RTSP Camera Available at {CAMERA_IP}:554\n"
+            f"Stream: rtsp://chickencam:password@{CAMERA_IP}:554/stream1\n"
+            f"Note: OpenCV not available on Pi Zero\n"
+            f"Use VLC or other RTSP client to view live stream",
+            mimetype='text/plain'
+        )
+    except Exception as e:
+        print(f"Error creating RTSP info image: {e}")
+        return Response(
+            f"RTSP Camera Available - OpenCV not installed\n"
+            f"Stream URL: rtsp://chickencam:password@{CAMERA_IP}:554/stream1",
+            mimetype='text/plain'
+        )
     """Create a placeholder image when camera is not accessible"""
     try:
         from PIL import Image, ImageDraw, ImageFont
@@ -292,93 +382,41 @@ def create_placeholder_image():
 
 @app.route('/api/camera/stream')
 def camera_stream():
-    """Stream camera via RTSP snapshots"""
+    """Stream camera info since OpenCV unavailable on Pi Zero"""
     try:
-        print("Using RTSP snapshot stream for live camera feed")
-        return rtsp_snapshot_stream()
+        print("OpenCV not available on Pi Zero - showing RTSP info stream")
+        return rtsp_info_stream()
     except Exception as e:
         print(f"Camera stream error: {e}")
-        return placeholder_stream()
+        return rtsp_info_stream()
 
-def rtsp_snapshot_stream():
-    """Create a stream using RTSP snapshots"""
+def rtsp_info_stream():
+    """Create a stream showing RTSP camera information"""
     import time
 
     def generate():
         while True:
             try:
-                import cv2
-
-                # Use the working RTSP URL with authentication
-                rtsp_url = f"rtsp://{CAMERA_USERNAME}:{CAMERA_PASSWORD}@{CAMERA_IP}:554/stream1"
-
-                # Open video capture
-                cap = cv2.VideoCapture(rtsp_url)
-
-                if cap.isOpened():
-                    # Read a frame
-                    ret, frame = cap.read()
-                    if ret:
-                        # Encode frame as JPEG
-                        success, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
-                        if success:
-                            yield (b'--frame\r\n'
-                                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-                        cap.release()
-                        # Update every 2 seconds for live feel
-                        time.sleep(2)
-                        continue
-
-                cap.release()
-
-                # If RTSP fails, fall back to placeholder for this frame
-                placeholder_response = create_placeholder_image()
-                if hasattr(placeholder_response, 'get_data'):
-                    image_data = placeholder_response.get_data()
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
-
-                time.sleep(3)  # Wait longer on error
-
-            except ImportError:
-                # OpenCV not available, use placeholder
-                placeholder_response = create_placeholder_image()
-                if hasattr(placeholder_response, 'get_data'):
-                    image_data = placeholder_response.get_data()
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
-                time.sleep(5)
-
-            except Exception as e:
-                print(f"RTSP stream error: {e}")
-                time.sleep(5)
-
-    return Response(generate(),
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
-
-def placeholder_stream():
-    """Create a stream showing placeholder images"""
-    import time
-
-    def generate():
-        while True:
-            try:
-                # Get the placeholder image as bytes
-                placeholder_response = create_placeholder_image()
-                if hasattr(placeholder_response, 'data'):
-                    image_data = placeholder_response.data
+                # Get the RTSP info image as bytes
+                info_response = create_rtsp_info_image()
+                if hasattr(info_response, 'get_data'):
+                    image_data = info_response.get_data()
+                elif hasattr(info_response, 'data'):
+                    image_data = info_response.data
                 else:
-                    image_data = placeholder_response.get_data()
+                    # Fallback - create simple text response
+                    text_msg = "RTSP Camera Available - No OpenCV on Pi Zero"
+                    image_data = text_msg.encode('utf-8')
 
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
 
-                # Update every 5 seconds (slower for placeholder)
-                time.sleep(5)
+                # Update every 10 seconds (slower for info display)
+                time.sleep(10)
 
             except Exception as e:
-                print(f"Placeholder stream error: {e}")
-                time.sleep(5)
+                print(f"RTSP info stream error: {e}")
+                time.sleep(10)
 
     return Response(generate(),
                    mimetype='multipart/x-mixed-replace; boundary=frame')

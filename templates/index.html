@@ -649,6 +649,9 @@
               <button class="btn btn-camera" onclick="debugCamera()">
                 🔍 Debug Camera
               </button>
+              <button class="btn btn-camera" onclick="copyRtspUrl()">
+                📋 Copy RTSP URL
+              </button>
               <a
                 href="http://192.168.0.135"
                 target="_blank"
@@ -1047,6 +1050,35 @@
         } catch (error) {
           console.error("Camera debug failed:", error);
           showMessage("Camera debug failed: " + error.message, "error");
+        }
+      }
+
+      // Copy RTSP URL to clipboard
+      async function copyRtspUrl() {
+        const rtspUrl = "rtsp://chickencam:password@192.168.0.135:554/stream1";
+
+        try {
+          await navigator.clipboard.writeText(rtspUrl);
+          showMessage(
+            "RTSP URL copied to clipboard! Open in VLC or other RTSP player.",
+            "success"
+          );
+
+          // Also show instructions
+          setTimeout(() => {
+            alert(
+              `RTSP URL copied: ${rtspUrl}\n\nTo view live stream:\n1. Open VLC Media Player\n2. Go to Media > Open Network Stream\n3. Paste the URL\n4. Click Play\n\nOr use any RTSP-compatible app on your phone/tablet.`
+            );
+          }, 1000);
+        } catch (error) {
+          // Fallback for browsers that don't support clipboard API
+          showMessage("Copy this RTSP URL: " + rtspUrl, "success");
+
+          // Show the URL in a dialog
+          const userCopy = prompt(
+            "Copy this RTSP URL to view live stream in VLC or other RTSP player:",
+            rtspUrl
+          );
         }
       }
 
