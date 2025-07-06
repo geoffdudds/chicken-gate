@@ -4,12 +4,18 @@ Flask web application for monitoring and controlling the chicken gate.
 Provides a web interface to view gate position, switch status, and send commands.
 """
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 import os
 import json
+import requests
 from datetime import datetime
 
 app = Flask(__name__)
+
+# Camera configuration
+CAMERA_IP = "192.168.0.135"
+CAMERA_USERNAME = "chickencam"  # Default for Tapo cameras
+CAMERA_PASSWORD = "password"       # You may need to set this up in camera settings
 
 def read_gate_status():
     """Read current gate status from the status file written by main.py"""
@@ -147,6 +153,83 @@ def api_clear_diagnostics():
         return jsonify({'success': True, 'message': 'Diagnostic messages cleared'})
     else:
         return jsonify({'success': False, 'message': message}), 400
+
+@app.route('/api/camera/snapshot')
+def camera_snapshot():
+    """Get a snapshot from the camera"""
+    try:
+        # Try the Tapo snapshot URL
+        snapshot_url = f"http://{CAMERA_IP}/stream/snapshot.jpg"
+
+        # Try to get snapshot without authentication first
+        response = requests.get(snapshot_url, timeout=5)
+
+        if response.status_code == 200:
+            return Response(response.content, mimetype='image/jpeg')
+        else:
+            # If that fails, return a placeholder image
+            return jsonify({"error": "Camera not accessible"}), 404
+
+    except Exception as e:
+        print(f"Camera error: {e}")
+        return jsonify({"error": "Camera connection failed"}), 500
+
+@app.route('/api/camera/stream')
+def camera_stream():
+    """Proxy camera MJPEG stream"""
+    try:
+        # Common MJPEG stream URLs for Tapo cameras
+        possible_urls = [
+            f"http://{CAMERA_IP}/stream/1",  # Tapo direct stream
+            f"http://{CAMERA_IP}/videostream.cgi?resolution=8&framerate=15",  # Alternative format
+            f"http://{CAMERA_IP}/video.cgi",  # Basic video stream
+            f"http://{CAMERA_IP}:80/onvif/snapshot",  # ONVIF format
+        ]
+
+        for stream_url in possible_urls:
+            try:
+                print(f"Trying camera stream URL: {stream_url}")
+                response = requests.get(stream_url, stream=True, timeout=10)
+                if response.status_code == 200:
+                    print(f"Success with URL: {stream_url}")
+                    def generate():
+                        for chunk in response.iter_content(chunk_size=1024):
+                            if chunk:
+                                yield chunk
+
+                    return Response(generate(),
+                                  mimetype='multipart/x-mixed-replace; boundary=frame')
+            except Exception as e:
+                print(f"Failed {stream_url}: {e}")
+                continue
+
+        # If all stream URLs fail, fall back to snapshot-based "stream"
+        print("All stream URLs failed, falling back to snapshot stream")
+        return snapshot_stream()
+
+    except Exception as e:
+        print(f"Camera stream error: {e}")
+        return jsonify({"error": "Camera stream failed"}), 500
+
+def snapshot_stream():
+    """Create a pseudo-stream using snapshots if live stream isn't available"""
+    import time
+
+    def generate():
+        while True:
+            try:
+                snapshot_url = f"http://{CAMERA_IP}/stream/snapshot.jpg"
+                response = requests.get(snapshot_url, timeout=5)
+                if response.status_code == 200:
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + response.content + b'\r\n')
+                else:
+                    time.sleep(1)  # Wait before retrying
+            except Exception:
+                time.sleep(2)  # Wait longer on error
+
+    return Response(generate(),
+                   mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist

@@ -214,6 +214,82 @@
         color: #667eea;
       }
 
+      /* Camera Section Styles */
+      .camera-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+      }
+
+      .camera-section h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #495057;
+      }
+
+      .camera-container {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
+      .camera-feed {
+        background: #000;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        position: relative;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .camera-feed img {
+        width: 100%;
+        height: auto;
+        display: block;
+        max-height: 480px;
+        object-fit: contain;
+      }
+
+      .camera-controls {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn-camera {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn-camera:hover {
+        background: linear-gradient(135deg, #138496, #117a8b);
+        text-decoration: none;
+        color: white;
+      }
+
+      /* Mobile responsive for camera */
+      @media (max-width: 768px) {
+        .camera-feed {
+          min-height: 150px;
+        }
+
+        .camera-feed img {
+          max-height: 300px;
+        }
+
+        .btn-camera {
+          padding: 15px 20px;
+          font-size: 1em;
+          min-width: 120px;
+        }
+      }
+
       .reset-controls {
         display: flex;
         gap: 10px;
@@ -539,6 +615,48 @@
           </div>
         </div>
 
+        <!-- Camera Section -->
+        <div class="camera-section">
+          <h2>📹 Live Camera Feed</h2>
+          <div class="camera-container">
+            <div class="camera-feed">
+              <img
+                id="camera-stream"
+                src="/api/camera/stream"
+                alt="Camera feed unavailable"
+                onerror="this.style.display='none'; document.getElementById('camera-error').style.display='block';"
+                onload="this.style.display='block'; document.getElementById('camera-error').style.display='none';"
+              />
+              <div
+                id="camera-error"
+                style="
+                  display: none;
+                  padding: 40px;
+                  text-align: center;
+                  color: #6c757d;
+                  background: #f8f9fa;
+                "
+              >
+                📷 Camera Unavailable<br />
+                <small>Check camera connection at 192.168.0.135</small>
+              </div>
+            </div>
+
+            <div class="camera-controls">
+              <button class="btn btn-camera" onclick="refreshCamera()">
+                🔄 Restart Stream
+              </button>
+              <a
+                href="http://192.168.0.135"
+                target="_blank"
+                class="btn btn-camera"
+              >
+                ⚙️ Camera Settings
+              </a>
+            </div>
+          </div>
+        </div>
+
         <div class="controls">
           <h2>Gate Controls</h2>
           <div class="control-buttons">
@@ -860,6 +978,47 @@
           showMessage("Failed to clear diagnostics", "error");
         }
       }
+
+      // Camera functions
+      function refreshCamera() {
+        const cameraImg = document.getElementById("camera-stream");
+
+        // For livestream, we just need to reload the stream
+        const streamUrl = "/api/camera/stream";
+        cameraImg.src = streamUrl + "?t=" + new Date().getTime();
+
+        showMessage("Camera restarted", "success");
+      }
+
+      // Check camera connection periodically
+      function checkCameraConnection() {
+        const cameraImg = document.getElementById("camera-stream");
+        const errorDiv = document.getElementById("camera-error");
+
+        // Test if camera is accessible
+        fetch("/api/camera/snapshot", { method: "HEAD" })
+          .then((response) => {
+            if (response.ok) {
+              // Camera is accessible - make sure stream is showing
+              if (cameraImg.style.display === "none") {
+                cameraImg.style.display = "block";
+                errorDiv.style.display = "none";
+              }
+            } else {
+              // Camera not accessible
+              cameraImg.style.display = "none";
+              errorDiv.style.display = "block";
+            }
+          })
+          .catch(() => {
+            // Network error
+            cameraImg.style.display = "none";
+            errorDiv.style.display = "block";
+          });
+      }
+
+      // Check camera connection every 60 seconds (less frequent since it's just a connection test)
+      setInterval(checkCameraConnection, 60000);
 
       // Control button handlers
       document.getElementById("openBtn").onclick = () => sendCommand("OPEN");

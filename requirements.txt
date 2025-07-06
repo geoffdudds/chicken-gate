@@ -4,6 +4,7 @@ RPi.GPIO
 blynk-library-python
 toml
 flask
+requests
 importlib-metadata
 typing-extensions
 astral
