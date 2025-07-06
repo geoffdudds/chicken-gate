@@ -9,7 +9,7 @@ import time
 
 def test_camera_endpoints():
     """Test both camera endpoints to ensure they don't hang"""
-    base_url = "http://localhost:5000"
+    base_url = "http://localhost:80"
 
     endpoints = [
         "/api/camera/snapshot",
@@ -48,7 +48,7 @@ def test_camera_endpoints():
 
 if __name__ == "__main__":
     print("Testing camera endpoint fixes...")
-    print("Make sure the Flask app is running on port 5000")
+    print("Make sure the Flask app is running on port 80")
     print("=" * 50)
 
     test_camera_endpoints()
