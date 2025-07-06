@@ -14,11 +14,23 @@ app = Flask(__name__)
 
 # Camera configuration
 CAMERA_IP = "192.168.0.135"
-CAMERA_USERNAME = "chickencam"  # Default for Tapo cameras
-CAMERA_PASSWORD = "password"       # You may need to set this up in camera settings
+CAMERA_USERNAME = "admin"  # Try admin as default username for Tapo
+CAMERA_PASSWORD = "admin"  # Try admin as default password
 
-# Common ports for IP cameras
-CAMERA_PORTS = [80, 8080, 554, 88, 443, 8443, 1935]
+# Common ports for IP cameras (focus on working ones from your test)
+CAMERA_PORTS = [554, 443, 8443, 80, 8080, 88, 1935]
+
+# RTSP stream URLs for Tapo cameras
+RTSP_URLS = [
+    f"rtsp://{CAMERA_IP}:554/stream1",
+    f"rtsp://{CAMERA_IP}:554/stream2",
+    f"rtsp://{CAMERA_IP}:554/live",
+    f"rtsp://{CAMERA_IP}:554/Streaming/Channels/101",
+    f"rtsp://{CAMERA_IP}:554/Streaming/Channels/1",
+]
+
+# Since Tapo cameras often don't support direct HTTP access, we'll create a mock camera feed
+# You can replace this with actual camera integration once you set up proper credentials
 
 def read_gate_status():
     """Read current gate status from the status file written by main.py"""
@@ -159,128 +171,137 @@ def api_clear_diagnostics():
 
 @app.route('/api/camera/snapshot')
 def camera_snapshot():
-    """Get a snapshot from the camera"""
+    """Get a snapshot from the camera or return a placeholder"""
     try:
-        # Try different ports and snapshot URLs for TP-Link Tapo cameras
-        for port in CAMERA_PORTS:
-            possible_urls = [
-                f"http://{CAMERA_IP}:{port}/stream/snapshot.jpg",  # Generic snapshot
-                f"http://{CAMERA_IP}:{port}/tmpfs/auto.jpg",       # Tapo internal snapshot
-                f"http://{CAMERA_IP}:{port}/snapshot.cgi",         # CGI-based snapshot
-                f"http://{CAMERA_IP}:{port}/image/jpeg.cgi",       # Alternative format
-                f"http://{CAMERA_IP}:{port}/cgi-bin/snapshot.cgi", # CGI directory
-                f"http://{CAMERA_IP}:{port}/jpg/image.jpg",        # JPG directory
-            ]
+        # TP-Link Tapo cameras typically don't support direct HTTP snapshot access
+        # They usually require the Tapo app or ONVIF/RTSP protocols with proper authentication
 
-            for snapshot_url in possible_urls:
-                try:
-                    print(f"Trying snapshot URL: {snapshot_url}")
-                    response = requests.get(snapshot_url, timeout=5,
-                                          auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
-                    if response.status_code == 200 and len(response.content) > 1000:  # Basic check for valid image
-                        print(f"Success with snapshot URL: {snapshot_url}")
-                        return Response(response.content, mimetype='image/jpeg')
-                except Exception as e:
-                    # Don't print every failure to avoid spam, just the port failures
-                    if "Connection refused" not in str(e):
-                        print(f"Failed snapshot URL {snapshot_url}: {e}")
-                    continue
+        # Try a few HTTP snapshot URLs just in case
+        test_urls = [
+            f"http://{CAMERA_IP}/tmpfs/auto.jpg",
+            f"http://{CAMERA_IP}/jpg/image.jpg",
+            f"http://{CAMERA_IP}/snapshot.jpg",
+        ]
 
-            print(f"No working snapshot URLs found on port {port}")
+        for url in test_urls:
+            try:
+                print(f"Trying snapshot URL: {url}")
+                response = requests.get(url, timeout=3,
+                                      auth=(CAMERA_USERNAME, CAMERA_PASSWORD))
+                if response.status_code == 200 and len(response.content) > 1000:
+                    print(f"Success with snapshot URL: {url}")
+                    return Response(response.content, mimetype='image/jpeg')
+            except Exception as e:
+                if "Connection refused" not in str(e):
+                    print(f"Failed {url}: {e}")
+                continue
 
-        return jsonify({"error": "Camera not accessible on any tested port"}), 404
+        # Return a placeholder image with camera info instead of an error
+        return create_placeholder_image()
 
     except Exception as e:
         print(f"Camera error: {e}")
-        return jsonify({"error": "Camera connection failed"}), 500
+        return create_placeholder_image()
+
+def create_placeholder_image():
+    """Create a placeholder image when camera is not accessible via HTTP"""
+    import io
+    from PIL import Image, ImageDraw, ImageFont
+
+    try:
+        # Create a simple placeholder image
+        img = Image.new('RGB', (640, 480))
+        img.paste((44, 62, 80), [0, 0, 640, 480])  # Fill with dark blue-gray color
+        draw = ImageDraw.Draw(img)
+
+        # Try to use a default font, fall back to basic if not available
+        try:
+            font = ImageFont.truetype("arial.ttf", 24)
+            small_font = ImageFont.truetype("arial.ttf", 16)
+        except Exception:
+            font = ImageFont.load_default()
+            small_font = ImageFont.load_default()
+
+        # Draw text
+        text1 = "📷 TP-Link Tapo Camera"
+        text2 = f"IP: {CAMERA_IP}"
+        text3 = "Camera requires Tapo app"
+        text4 = "or RTSP/ONVIF protocol"
+        text5 = "for live streaming"
+
+        # Get text size and center it
+        bbox1 = draw.textbbox((0, 0), text1, font=font)
+        bbox2 = draw.textbbox((0, 0), text2, font=small_font)
+        bbox3 = draw.textbbox((0, 0), text3, font=small_font)
+        bbox4 = draw.textbbox((0, 0), text4, font=small_font)
+        bbox5 = draw.textbbox((0, 0), text5, font=small_font)
+
+        x1 = (640 - (bbox1[2] - bbox1[0])) // 2
+        x2 = (640 - (bbox2[2] - bbox2[0])) // 2
+        x3 = (640 - (bbox3[2] - bbox3[0])) // 2
+        x4 = (640 - (bbox4[2] - bbox4[0])) // 2
+        x5 = (640 - (bbox5[2] - bbox5[0])) // 2
+
+        draw.text((x1, 180), text1, fill='white', font=font)
+        draw.text((x2, 220), text2, fill=(189, 195, 199), font=small_font)  # Light gray
+        draw.text((x3, 260), text3, fill=(189, 195, 199), font=small_font)
+        draw.text((x4, 280), text4, fill=(189, 195, 199), font=small_font)
+        draw.text((x5, 300), text5, fill=(189, 195, 199), font=small_font)
+
+        # Save to bytes
+        img_io = io.BytesIO()
+        img.save(img_io, 'JPEG', quality=85)
+        img_io.seek(0)
+
+        return Response(img_io.getvalue(), mimetype='image/jpeg')
+
+    except ImportError:
+        # If PIL is not available, return a simple text response
+        return Response("Camera not accessible via HTTP - Tapo cameras require special protocols",
+                       mimetype='text/plain')
 
 @app.route('/api/camera/stream')
 def camera_stream():
     """Proxy camera MJPEG stream or fall back to snapshot stream"""
     try:
         # TP-Link Tapo cameras typically don't support direct MJPEG streaming without authentication
-        # Let's try a few common URLs but expect to fall back to snapshot streaming
-        possible_urls = [
-            f"http://{CAMERA_IP}/stream/1",  # Generic stream endpoint
-            f"http://{CAMERA_IP}/video.mjpg",  # Common MJPEG endpoint
-            f"http://{CAMERA_IP}/mjpeg/1",  # Alternative MJPEG
-            f"http://{CAMERA_IP}/cgi-bin/mjpg/video.cgi",  # CGI-based stream
-        ]
-
-        for stream_url in possible_urls:
-            try:
-                print(f"Trying camera stream URL: {stream_url}")
-                response = requests.get(stream_url, stream=True, timeout=5,
-                                      auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
-                if response.status_code == 200 and 'image' in response.headers.get('content-type', '').lower():
-                    print(f"Success with MJPEG URL: {stream_url}")
-                    def generate():
-                        for chunk in response.iter_content(chunk_size=1024):
-                            if chunk:
-                                yield chunk
-
-                    return Response(generate(),
-                                  mimetype='multipart/x-mixed-replace; boundary=frame')
-            except Exception as e:
-                print(f"Failed {stream_url}: {e}")
-                continue
-
-        # Most Tapo cameras require their mobile app or special protocols
-        # Fall back to snapshot-based "stream" which works more reliably
-        print("No direct MJPEG stream available, using snapshot-based stream")
-        return snapshot_stream()
+        # Most require the Tapo app or RTSP/ONVIF protocols
+        print("Tapo cameras typically require RTSP or Tapo app for streaming")
+        print("Falling back to placeholder image stream")
+        return placeholder_stream()
 
     except Exception as e:
         print(f"Camera stream error: {e}")
-        return snapshot_stream()  # Always fall back to snapshot stream
+        return placeholder_stream()
 
-def snapshot_stream():
-    """Create a pseudo-stream using snapshots if live stream isn't available"""
+def placeholder_stream():
+    """Create a stream showing placeholder images"""
     import time
 
     def generate():
         while True:
             try:
-                # Try the same snapshot URLs as the snapshot endpoint
-                success = False  # Initialize success flag
-                for port in CAMERA_PORTS:
-                    possible_urls = [
-                        f"http://{CAMERA_IP}:{port}/stream/snapshot.jpg",
-                        f"http://{CAMERA_IP}:{port}/tmpfs/auto.jpg",
-                        f"http://{CAMERA_IP}:{port}/snapshot.cgi",
-                        f"http://{CAMERA_IP}:{port}/image/jpeg.cgi",
-                        f"http://{CAMERA_IP}:{port}/cgi-bin/snapshot.cgi",
-                        f"http://{CAMERA_IP}:{port}/jpg/image.jpg",
-                    ]
-
-                    for snapshot_url in possible_urls:
-                        try:
-                            response = requests.get(snapshot_url, timeout=3,
-                                                  auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
-                            if response.status_code == 200 and len(response.content) > 1000:
-                                yield (b'--frame\r\n'
-                                       b'Content-Type: image/jpeg\r\n\r\n' + response.content + b'\r\n')
-                                success = True
-                                break
-                        except Exception:
-                            continue
-
-                    if success:
-                        break  # Found a working URL, use it
-
-                if not success:
-                    # If no snapshot worked, wait longer before retrying
-                    time.sleep(5)
+                # Get the placeholder image as bytes
+                placeholder_response = create_placeholder_image()
+                if hasattr(placeholder_response, 'data'):
+                    image_data = placeholder_response.data
                 else:
-                    # Update every 2 seconds for smooth "streaming"
-                    time.sleep(2)
+                    image_data = placeholder_response.get_data()
+
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
+
+                # Update every 5 seconds (slower for placeholder)
+                time.sleep(5)
 
             except Exception as e:
-                print(f"Snapshot stream error: {e}")
-                time.sleep(5)  # Wait longer on error
+                print(f"Placeholder stream error: {e}")
+                time.sleep(5)
 
     return Response(generate(),
                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# Removed old snapshot_stream function - replaced with placeholder_stream
 
 @app.route('/api/camera/debug')
 def camera_debug():
@@ -289,25 +310,42 @@ def camera_debug():
         debug_info = {
             "camera_ip": CAMERA_IP,
             "timestamp": datetime.now().isoformat(),
+            "camera_type": "TP-Link Tapo C320WS",
             "ports_tested": CAMERA_PORTS,
+            "rtsp_urls": RTSP_URLS,
+            "notes": [
+                "TP-Link Tapo cameras typically require:",
+                "1. Tapo mobile app for setup and viewing",
+                "2. RTSP protocol for streaming (port 554)",
+                "3. ONVIF protocol for integration",
+                "4. Proper authentication credentials",
+                "Direct HTTP snapshot access is usually not supported"
+            ],
             "tests": []
         }
 
-        # Test different ports and URLs
-        for port in CAMERA_PORTS:
-            port_tests = []
-
-            # Test basic connectivity to port
+        # Test basic connectivity to key ports
+        key_ports = [554, 443, 8443]  # Focus on ports that showed activity
+        for port in key_ports:
             basic_url = f"http://{CAMERA_IP}:{port}"
             test_result = {
                 "url": basic_url,
+                "port": port,
                 "type": "basic_connectivity",
                 "status": "unknown",
                 "response_code": None,
                 "content_type": None,
                 "content_size": 0,
-                "error": None
+                "error": None,
+                "notes": ""
             }
+
+            if port == 554:
+                test_result["notes"] = "RTSP port - requires RTSP client"
+            elif port == 443:
+                test_result["notes"] = "HTTPS port - may require web login"
+            elif port == 8443:
+                test_result["notes"] = "Alternative HTTPS port"
 
             try:
                 response = requests.get(basic_url, timeout=3)
@@ -319,41 +357,17 @@ def camera_debug():
                 test_result["status"] = "error"
                 test_result["error"] = str(e)
 
-            port_tests.append(test_result)
+            debug_info["tests"].append(test_result)
 
-            # If basic connectivity works, test snapshot URLs
-            if test_result["status"] == "success" or test_result["response_code"]:
-                snapshot_urls = [
-                    f"http://{CAMERA_IP}:{port}/stream/snapshot.jpg",
-                    f"http://{CAMERA_IP}:{port}/tmpfs/auto.jpg",
-                    f"http://{CAMERA_IP}:{port}/snapshot.cgi",
-                    f"http://{CAMERA_IP}:{port}/image/jpeg.cgi",
-                ]
-
-                for url in snapshot_urls:
-                    snap_test = {
-                        "url": url,
-                        "type": "snapshot",
-                        "status": "unknown",
-                        "response_code": None,
-                        "content_type": None,
-                        "content_size": 0,
-                        "error": None
-                    }
-
-                    try:
-                        response = requests.get(url, timeout=3)
-                        snap_test["status"] = "success" if response.status_code == 200 else "failed"
-                        snap_test["response_code"] = response.status_code
-                        snap_test["content_type"] = response.headers.get('content-type', 'unknown')
-                        snap_test["content_size"] = len(response.content)
-                    except Exception as e:
-                        snap_test["status"] = "error"
-                        snap_test["error"] = str(e)
-
-                    port_tests.append(snap_test)
-
-            debug_info["tests"].extend(port_tests)
+        # Add RTSP connection test info (we can't actually test RTSP with requests)
+        rtsp_info = {
+            "type": "rtsp_info",
+            "status": "info",
+            "notes": "RTSP testing requires specialized tools like ffmpeg or VLC",
+            "suggested_rtsp_urls": RTSP_URLS,
+            "test_command": f"ffplay -rtsp_transport tcp rtsp://{CAMERA_USERNAME}:{CAMERA_PASSWORD}@{CAMERA_IP}:554/stream1"
+        }
+        debug_info["tests"].append(rtsp_info)
 
         return jsonify(debug_info)
 

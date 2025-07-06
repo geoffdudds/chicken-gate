@@ -5,6 +5,7 @@ blynk-library-python
 toml
 flask
 requests
+Pillow  # For camera placeholder image generation
 importlib-metadata
 typing-extensions
 astral
