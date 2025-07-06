@@ -382,44 +382,16 @@ def create_rtsp_info_image():
 
 @app.route('/api/camera/stream')
 def camera_stream():
-    """Stream camera info since OpenCV unavailable on Pi Zero"""
+    """Return static camera info image since OpenCV unavailable on Pi Zero"""
     try:
-        print("OpenCV not available on Pi Zero - showing RTSP info stream")
-        return rtsp_info_stream()
+        print("OpenCV not available on Pi Zero - returning static RTSP info image")
+        # Return the same static image as the snapshot endpoint
+        return create_rtsp_info_image()
     except Exception as e:
         print(f"Camera stream error: {e}")
-        return rtsp_info_stream()
-
-def rtsp_info_stream():
-    """Create a stream showing RTSP camera information"""
-    import time
-
-    def generate():
-        while True:
-            try:
-                # Get the RTSP info image as bytes
-                info_response = create_rtsp_info_image()
-                if hasattr(info_response, 'get_data'):
-                    image_data = info_response.get_data()
-                elif hasattr(info_response, 'data'):
-                    image_data = info_response.data
-                else:
-                    # Fallback - create simple text response
-                    text_msg = "RTSP Camera Available - No OpenCV on Pi Zero"
-                    image_data = text_msg.encode('utf-8')
-
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + image_data + b'\r\n')
-
-                # Update every 10 seconds (slower for info display)
-                time.sleep(10)
-
-            except Exception as e:
-                print(f"RTSP info stream error: {e}")
-                time.sleep(10)
-
-    return Response(generate(),
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
+        # Fallback to simple text response
+        return Response("Camera streaming not available on Pi Zero - Use RTSP URL in VLC",
+                       mimetype='text/plain')
 
 # Removed old snapshot_stream function - replaced with placeholder_stream
 
