@@ -17,6 +17,9 @@ CAMERA_IP = "192.168.0.135"
 CAMERA_USERNAME = "chickencam"  # Default for Tapo cameras
 CAMERA_PASSWORD = "password"       # You may need to set this up in camera settings
 
+# Common ports for IP cameras
+CAMERA_PORTS = [80, 8080, 554, 88, 443, 8443, 1935]
+
 def read_gate_status():
     """Read current gate status from the status file written by main.py"""
     try:
@@ -158,27 +161,34 @@ def api_clear_diagnostics():
 def camera_snapshot():
     """Get a snapshot from the camera"""
     try:
-        # Try different snapshot URLs for TP-Link Tapo cameras
-        possible_urls = [
-            f"http://{CAMERA_IP}/stream/snapshot.jpg",  # Generic snapshot
-            f"http://{CAMERA_IP}/tmpfs/auto.jpg",       # Tapo internal snapshot
-            f"http://{CAMERA_IP}/snapshot.cgi",         # CGI-based snapshot
-            f"http://{CAMERA_IP}/image/jpeg.cgi",       # Alternative format
-        ]
+        # Try different ports and snapshot URLs for TP-Link Tapo cameras
+        for port in CAMERA_PORTS:
+            possible_urls = [
+                f"http://{CAMERA_IP}:{port}/stream/snapshot.jpg",  # Generic snapshot
+                f"http://{CAMERA_IP}:{port}/tmpfs/auto.jpg",       # Tapo internal snapshot
+                f"http://{CAMERA_IP}:{port}/snapshot.cgi",         # CGI-based snapshot
+                f"http://{CAMERA_IP}:{port}/image/jpeg.cgi",       # Alternative format
+                f"http://{CAMERA_IP}:{port}/cgi-bin/snapshot.cgi", # CGI directory
+                f"http://{CAMERA_IP}:{port}/jpg/image.jpg",        # JPG directory
+            ]
 
-        for snapshot_url in possible_urls:
-            try:
-                print(f"Trying snapshot URL: {snapshot_url}")
-                response = requests.get(snapshot_url, timeout=10,
-                                      auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
-                if response.status_code == 200 and len(response.content) > 1000:  # Basic check for valid image
-                    print(f"Success with snapshot URL: {snapshot_url}")
-                    return Response(response.content, mimetype='image/jpeg')
-            except Exception as e:
-                print(f"Failed snapshot URL {snapshot_url}: {e}")
-                continue
+            for snapshot_url in possible_urls:
+                try:
+                    print(f"Trying snapshot URL: {snapshot_url}")
+                    response = requests.get(snapshot_url, timeout=5,
+                                          auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
+                    if response.status_code == 200 and len(response.content) > 1000:  # Basic check for valid image
+                        print(f"Success with snapshot URL: {snapshot_url}")
+                        return Response(response.content, mimetype='image/jpeg')
+                except Exception as e:
+                    # Don't print every failure to avoid spam, just the port failures
+                    if "Connection refused" not in str(e):
+                        print(f"Failed snapshot URL {snapshot_url}: {e}")
+                    continue
 
-        return jsonify({"error": "Camera not accessible"}), 404
+            print(f"No working snapshot URLs found on port {port}")
+
+        return jsonify({"error": "Camera not accessible on any tested port"}), 404
 
     except Exception as e:
         print(f"Camera error: {e}")
@@ -232,29 +242,35 @@ def snapshot_stream():
         while True:
             try:
                 # Try the same snapshot URLs as the snapshot endpoint
-                possible_urls = [
-                    f"http://{CAMERA_IP}/stream/snapshot.jpg",
-                    f"http://{CAMERA_IP}/tmpfs/auto.jpg",
-                    f"http://{CAMERA_IP}/snapshot.cgi",
-                    f"http://{CAMERA_IP}/image/jpeg.cgi",
-                ]
+                success = False  # Initialize success flag
+                for port in CAMERA_PORTS:
+                    possible_urls = [
+                        f"http://{CAMERA_IP}:{port}/stream/snapshot.jpg",
+                        f"http://{CAMERA_IP}:{port}/tmpfs/auto.jpg",
+                        f"http://{CAMERA_IP}:{port}/snapshot.cgi",
+                        f"http://{CAMERA_IP}:{port}/image/jpeg.cgi",
+                        f"http://{CAMERA_IP}:{port}/cgi-bin/snapshot.cgi",
+                        f"http://{CAMERA_IP}:{port}/jpg/image.jpg",
+                    ]
 
-                success = False
-                for snapshot_url in possible_urls:
-                    try:
-                        response = requests.get(snapshot_url, timeout=5,
-                                              auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
-                        if response.status_code == 200 and len(response.content) > 1000:
-                            yield (b'--frame\r\n'
-                                   b'Content-Type: image/jpeg\r\n\r\n' + response.content + b'\r\n')
-                            success = True
-                            break
-                    except Exception:
-                        continue
+                    for snapshot_url in possible_urls:
+                        try:
+                            response = requests.get(snapshot_url, timeout=3,
+                                                  auth=(CAMERA_USERNAME, CAMERA_PASSWORD) if CAMERA_USERNAME != "chickencam" else None)
+                            if response.status_code == 200 and len(response.content) > 1000:
+                                yield (b'--frame\r\n'
+                                       b'Content-Type: image/jpeg\r\n\r\n' + response.content + b'\r\n')
+                                success = True
+                                break
+                        except Exception:
+                            continue
+
+                    if success:
+                        break  # Found a working URL, use it
 
                 if not success:
                     # If no snapshot worked, wait longer before retrying
-                    time.sleep(3)
+                    time.sleep(5)
                 else:
                     # Update every 2 seconds for smooth "streaming"
                     time.sleep(2)
@@ -273,23 +289,19 @@ def camera_debug():
         debug_info = {
             "camera_ip": CAMERA_IP,
             "timestamp": datetime.now().isoformat(),
+            "ports_tested": CAMERA_PORTS,
             "tests": []
         }
 
-        # Test different URLs
-        test_urls = [
-            f"http://{CAMERA_IP}/stream/snapshot.jpg",
-            f"http://{CAMERA_IP}/tmpfs/auto.jpg",
-            f"http://{CAMERA_IP}/snapshot.cgi",
-            f"http://{CAMERA_IP}/image/jpeg.cgi",
-            f"http://{CAMERA_IP}/stream/1",
-            f"http://{CAMERA_IP}/video.mjpg",
-            f"http://{CAMERA_IP}",  # Just test basic connectivity
-        ]
+        # Test different ports and URLs
+        for port in CAMERA_PORTS:
+            port_tests = []
 
-        for url in test_urls:
+            # Test basic connectivity to port
+            basic_url = f"http://{CAMERA_IP}:{port}"
             test_result = {
-                "url": url,
+                "url": basic_url,
+                "type": "basic_connectivity",
                 "status": "unknown",
                 "response_code": None,
                 "content_type": None,
@@ -298,7 +310,7 @@ def camera_debug():
             }
 
             try:
-                response = requests.get(url, timeout=5)
+                response = requests.get(basic_url, timeout=3)
                 test_result["status"] = "success" if response.status_code == 200 else "failed"
                 test_result["response_code"] = response.status_code
                 test_result["content_type"] = response.headers.get('content-type', 'unknown')
@@ -307,7 +319,41 @@ def camera_debug():
                 test_result["status"] = "error"
                 test_result["error"] = str(e)
 
-            debug_info["tests"].append(test_result)
+            port_tests.append(test_result)
+
+            # If basic connectivity works, test snapshot URLs
+            if test_result["status"] == "success" or test_result["response_code"]:
+                snapshot_urls = [
+                    f"http://{CAMERA_IP}:{port}/stream/snapshot.jpg",
+                    f"http://{CAMERA_IP}:{port}/tmpfs/auto.jpg",
+                    f"http://{CAMERA_IP}:{port}/snapshot.cgi",
+                    f"http://{CAMERA_IP}:{port}/image/jpeg.cgi",
+                ]
+
+                for url in snapshot_urls:
+                    snap_test = {
+                        "url": url,
+                        "type": "snapshot",
+                        "status": "unknown",
+                        "response_code": None,
+                        "content_type": None,
+                        "content_size": 0,
+                        "error": None
+                    }
+
+                    try:
+                        response = requests.get(url, timeout=3)
+                        snap_test["status"] = "success" if response.status_code == 200 else "failed"
+                        snap_test["response_code"] = response.status_code
+                        snap_test["content_type"] = response.headers.get('content-type', 'unknown')
+                        snap_test["content_size"] = len(response.content)
+                    except Exception as e:
+                        snap_test["status"] = "error"
+                        snap_test["error"] = str(e)
+
+                    port_tests.append(snap_test)
+
+            debug_info["tests"].extend(port_tests)
 
         return jsonify(debug_info)
 
