@@ -3,19 +3,19 @@
 echo "🔄 Updating Chicken Gate Web Interface Service"
 echo "============================================="
 
-# Check which service to update (default to port 80)
-if [ "$1" = "--port5000" ] || [ "$1" = "--dev" ]; then
-    SERVICE_NAME="chicken-gate-web"
-    SERVICE_FILE="chicken-gate-web.service"
-    PORT="5000"
-    URL_SUFFIX=":5000"
-    echo "� Updating DEVELOPMENT service (port 5000)"
-else
+# Check which service to update (default to port 5000)
+if [ "$1" = "--port80" ] || [ "$1" = "--prod" ]; then
     SERVICE_NAME="chicken-gate-web-port80"
     SERVICE_FILE="chicken-gate-web-port80.service"
     PORT="80"
     URL_SUFFIX=""
     echo "📌 Updating PRODUCTION service (port 80)"
+else
+    SERVICE_NAME="chicken-gate-web"
+    SERVICE_FILE="chicken-gate-web.service"
+    PORT="5000"
+    URL_SUFFIX=":5000"
+    echo "🔧 Updating DEVELOPMENT service (port 5000)"
 fi
 
 echo ""
@@ -52,9 +52,13 @@ if [ "$PORT" = "80" ]; then
 else
     echo ""
     echo "💡 Development mode - no root privileges needed."
+    echo "✅ Port 5000 + Tailscale = Perfect"
+    echo "   - Clean URLs: http://chicken-gate:5000"
+    echo "   - Secure by default (Tailscale network)"
+    echo "   - No root required"
 fi
 
 echo ""
 echo "📋 To switch services:"
-echo "   Production (port 80): ./update-web-service.sh"
-echo "   Development (port 5000): ./update-web-service.sh --port5000"
+echo "   Development (port 5000): ./update-web-service.sh"
+echo "   Production (port 80): ./update-web-service.sh --port80"
