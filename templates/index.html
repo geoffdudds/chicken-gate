@@ -1204,6 +1204,12 @@
       document.getElementById("clearErrorsBtn").onclick = () =>
         sendCommand("CLEAR_ERRORS");
 
+      // Schedule button handlers
+      document.getElementById("enableScheduleBtn").onclick = () =>
+        sendCommand("ENABLE_SCHEDULE");
+      document.getElementById("disableScheduleBtn").onclick = () =>
+        sendCommand("DISABLE_SCHEDULE");
+
       // Handle Enter key in reset position input
       const resetPositionInput = document.getElementById("reset-position");
       if (resetPositionInput) {
