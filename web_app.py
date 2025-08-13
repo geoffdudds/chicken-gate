@@ -53,6 +53,7 @@ def read_gate_status():
                 "errors": status.get("errors", []),
                 "diagnostic_messages": status.get("diagnostic_messages", []),
                 "schedule": status.get("schedule", {}),
+                "schedule_enabled": status.get("schedule_enabled", True),
                 "last_updated": status.get("last_updated", datetime.now().isoformat())
             }
         else:
@@ -69,6 +70,7 @@ def read_gate_status():
                 "errors": ["No status file found - is the gate system running?"],
                 "diagnostic_messages": [],
                 "schedule": {},
+                "schedule_enabled": True,
                 "last_updated": datetime.now().isoformat()
             }
     except Exception as e:
@@ -85,6 +87,7 @@ def read_gate_status():
             "errors": [f"Error reading status: {str(e)}"],
             "diagnostic_messages": [],
             "schedule": {},
+            "schedule_enabled": True,
             "last_updated": datetime.now().isoformat()
         }
 
