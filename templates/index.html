@@ -1252,26 +1252,7 @@
       });
 
       function updateStatusElements(status) {
-        // Update position
-        document.getElementById("position").textContent =
-          Math.round(status.position) + "%";
-        document.getElementById("target").textContent =
-          Math.round(status.target_position) + "%";
-
-        // Update gate state
-        const stateElement = document.getElementById("gateState");
-        if (status.is_opening) {
-          stateElement.textContent = "🟢 OPENING";
-          stateElement.className = "status-opening";
-        } else if (status.is_closing) {
-          stateElement.textContent = "🔴 CLOSING";
-          stateElement.className = "status-closing";
-        } else {
-          stateElement.textContent = "⚪ STOPPED";
-          stateElement.className = "status-stopped";
-        }
-
-        // Update schedule button states
+        // Update schedule button states and status display
         const enableBtn = document.getElementById("enableScheduleBtn");
         const disableBtn = document.getElementById("disableScheduleBtn");
         const scheduleStatusEl = document.getElementById("schedule-status");
@@ -1287,15 +1268,6 @@
           scheduleStatusEl.textContent = "DISABLED";
           scheduleStatusEl.className = "status-value schedule-disabled";
         }
-
-        // Update system status
-        updateSystemStatus(status);
-
-        // Update errors
-        updateErrors(status.errors);
-
-        // Update diagnostics
-        updateDiagnostics(status.diagnostic_messages);
       }
     </script>
   </body>
