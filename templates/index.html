@@ -837,6 +837,9 @@
 
           // Update schedule information
           updateScheduleInfo(data.schedule || {});
+
+          // Update the UI elements (call the other updateStatus function)
+          updateStatusElements(data);
         } catch (error) {
           console.error("Failed to update status:", error);
           showMessage("Failed to update status", "error");
@@ -1204,7 +1207,7 @@
         }
       });
 
-      function updateStatus(status) {
+      function updateStatusElements(status) {
         // Update position
         document.getElementById("position").textContent =
           Math.round(status.position) + "%";
