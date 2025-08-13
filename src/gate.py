@@ -8,7 +8,7 @@ logger = logging.getLogger('chicken-gate')
 
 
 class Gate:
-    def __init__(self, init_posn=100, open_time=300, close_time=420):
+    def __init__(self, init_posn=100, open_time=330, close_time=420):
         self.__motion_cmd = Cmd.STOP
         self.__closed_switch_pressed = False
         self.__open_switch_pressed = False
@@ -77,7 +77,7 @@ class Gate:
     def tick(self, elapsed_time=0.1):
         # update position based on movement
         if self.__closed_switch_pressed:
-            self.__posn = max(95, self.__posn)
+            self.__posn = max(90, self.__posn)
 
         if self.__open_switch_pressed:
             self.__posn = 0
