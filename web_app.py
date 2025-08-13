@@ -94,7 +94,7 @@ def send_gate_command(command):
         command_upper = command.upper()
 
         # Validate command
-        valid_commands = ['OPEN', 'CLOSE', 'STOP', 'RESET', 'CLEAR_ERRORS', 'CLEAR_DIAGNOSTICS']
+        valid_commands = ['OPEN', 'CLOSE', 'STOP', 'RESET', 'CLEAR_ERRORS', 'ENABLE_SCHEDULE', 'DISABLE_SCHEDULE']
 
         if command_upper.startswith('RESET:'):
             # Handle RESET:position format
