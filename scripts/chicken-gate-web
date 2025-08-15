@@ -26,5 +26,8 @@ if __name__ == "__main__":
     elif '--port80' in sys.argv:
         port = 80
 
+    # Disable debug mode when running under systemd to prevent restarts
+    debug_mode = (port == 5000) and ('INVOCATION_ID' not in os.environ)
+
     print(f"Starting chicken gate web interface on port {port}...")
-    app.run(host='0.0.0.0', port=port, debug=(port == 5000))
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

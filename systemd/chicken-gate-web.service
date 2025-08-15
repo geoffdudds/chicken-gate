@@ -10,7 +10,7 @@ User=pi
 Group=pi
 WorkingDirectory=/home/pi/sw/chicken-gate
 Environment=PATH=/home/pi/sw/chicken-gate/.venv/bin:/usr/local/bin:/usr/bin:/bin
-Environment=PYTHONPATH=/home/pi/sw/chicken-gate/src
+Environment=PYTHONPATH=/home/pi/sw/chicken-gate
 ExecStart=/home/pi/sw/chicken-gate/scripts/chicken-gate-web --port5000
 Restart=always
 RestartSec=5s
