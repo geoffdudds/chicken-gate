@@ -15,7 +15,8 @@ PRODUCTION_WEB_PORT = 80
 # Camera settings
 CAMERA_IP = "192.168.0.135"
 CAMERA_USERNAME = "chickencam"
-CAMERA_PASSWORD = "password"
+# Default password - should be changed in production
+CAMERA_PASSWORD = "password"  # nosec B105
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent

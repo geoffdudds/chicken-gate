@@ -1,4 +1,4 @@
-import os
+import subprocess  # nosec B404
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -55,7 +55,17 @@ class Schedule:
 
     def __restart_service(self):
         # restart the service to pick up any changes
-        os.system("/usr/bin/systemctl restart chicken-gate.service")
+        try:
+            # Secure subprocess call with fixed arguments
+            subprocess.run(
+                ["/usr/bin/systemctl", "restart", "chicken-gate.service"],  # nosec B603
+                check=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to restart service: {e}")
+        except FileNotFoundError:
+            print("systemctl not found - not running on systemd system")
 
     def __update_schedule(self):
         self.__update_open_and_close_times()

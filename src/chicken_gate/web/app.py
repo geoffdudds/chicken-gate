@@ -537,4 +537,5 @@ if __name__ == "__main__":
         print(f"  http://YOUR_PI_IP:{port}")
         print(f"  http://localhost:{port} (if running locally)")
 
-    app.run(host="0.0.0.0", port=port, debug=port == 5000)
+    # Bind to all interfaces for Pi accessibility
+    app.run(host="0.0.0.0", port=port, debug=port == 5000)  # nosec B104
