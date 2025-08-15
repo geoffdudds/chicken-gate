@@ -5,7 +5,6 @@ Handles testing with and without pytest, and provides environment setup.
 """
 
 import sys
-import os
 import subprocess
 from pathlib import Path
 
@@ -13,9 +12,6 @@ from pathlib import Path
 project_root = Path(__file__).parent
 src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
-
-# Set testing environment
-os.environ['TESTING'] = 'true'
 
 
 def check_pytest_available():
@@ -145,7 +141,7 @@ def main():
 
     if len(sys.argv) > 1:
         test_type = sys.argv[1].lower()
-        
+
         if test_type == "unit":
             return run_unit_tests_only()
         elif test_type == "integration":

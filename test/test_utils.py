@@ -28,6 +28,13 @@ def is_testing_environment():
     )
 
 
+def setup_test_email_config():
+    """Set up test email configuration via environment variables"""
+    os.environ['CHICKEN_GATE_EMAIL_SENDER'] = 'test@example.com'
+    os.environ['CHICKEN_GATE_EMAIL_PASSWORD'] = 'test_password'
+    os.environ['CHICKEN_GATE_EMAIL_RECIPIENT'] = 'test_recipient@example.com'
+
+
 @contextmanager
 def mock_rpi_gpio():
     """Context manager to mock RPi.GPIO for testing"""

@@ -1,11 +1,14 @@
 {
-    "python.formatting.provider": "none",
     "python.testing.pytestArgs": [
         "test"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit",
+            "source.fixAll.ruff": "explicit",
+        }
     }
 }

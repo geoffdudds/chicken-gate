@@ -63,7 +63,7 @@ class Gate_drv:
             # Closed switch activates at ~95% closed (position >= 95)
             # This simulates the physical switch being pressed when gate is almost fully closed
             self._closed_switch_state = gate_position >= 95
-            
+
         # Set gate inputs using mock states
         self.gate.set_closed_switch(self.is_switch_pressed())
         # No open switch in real hardware - gate uses only closed switch feedback

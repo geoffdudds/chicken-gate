@@ -20,11 +20,8 @@ from chicken_gate.gate.gate_cmd import Cmd
 from chicken_gate.gate.gate_drv_mock import Gate_drv
 
 
-@pytest.fixture(autouse=True)
-def mock_email():
-    """Auto-patch email sending for all tests in this module"""
-    with patch('chicken_gate.gate.email_me.send_email'):
-        yield
+# The mock_email_send fixture is now provided by conftest.py
+# and automatically available to all tests
 
 
 class TestGateDriverIntegration:
@@ -130,20 +127,20 @@ class TestGateDriverIntegration:
         """Test that the closed switch is properly detected"""
         # Start with gate closed (target position = 100) to avoid movement
         self.gate.close()
-        
+
         # Test closed switch
         self.driver.set_switch_state(closed_pressed=True)
         self.driver.tick()
         # When closed switch is pressed, position is set to max(90, current_position)
         # Since gate target is 100 (closed), no movement should occur
         assert self.gate.get_posn() >= 90
-        
+
         # Test closed switch released
         self.driver.set_switch_state(closed_pressed=False)
         self.driver.tick()
         # Position should remain where it was (no movement since target is still 100)
         assert self.gate.get_posn() >= 90
-    
+
     def test_switch_stops_movement(self):
         """Test that hitting a switch affects movement"""
         # Start with gate partially open
@@ -157,30 +154,30 @@ class TestGateDriverIntegration:
         # Hit the closed switch
         self.driver.set_switch_state(closed_pressed=True)
         self.driver.tick()
-        
+
         # Closed switch sets position to max(90, current), but target is still 100
         # So gate continues closing until it reaches 100
         position_after_switch = self.gate.get_posn()
         assert position_after_switch >= 90  # Should be at least 90 due to closed switch
-        
+
         # Let it continue to reach the target
         max_ticks = 50
         tick_count = 0
         while self.gate.is_moving() and tick_count < max_ticks:
             self.driver.tick()
             tick_count += 1
-        
+
         # Should eventually reach target and stop
         assert not self.gate.is_moving()
         assert self.gate.get_posn() == 100
-    
+
     def test_relay_state_transitions(self):
         """Test that relay states transition correctly"""
         # Start with gate at closed position so opening will trigger movement
         self.gate.reset_posn_to(100)
-        
+
         relays = self.driver.get_relay_states()
-        
+
         # Initially both relays should be off
         assert not relays['relay1']
         assert not relays['relay2']

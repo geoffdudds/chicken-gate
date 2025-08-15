@@ -29,6 +29,7 @@ chicken-gate/
 │   │   └── templates/         # HTML templates
 │   └── shared/                # Shared modules
 │       ├── config.py          # Configuration constants
+│       ├── secret.toml.template # Email configuration template
 │       └── timer.py           # Timing utilities
 ├── scripts/                   # Entry point scripts
 │   ├── chicken-gate-main      # Gate process entry point
@@ -38,6 +39,12 @@ chicken-gate/
 │   ├── chicken-gate-web.service     # Web interface service
 │   └── chicken-gate-web-port80.service  # Web on port 80
 ├── test/                      # Unit tests
+│   ├── conftest.py            # Pytest configuration and fixtures
+│   ├── test_gate.py           # Core gate functionality tests
+│   ├── test_gate_comprehensive.py  # Comprehensive gate tests
+│   ├── test_gate_integration.py    # Integration tests with mock hardware
+│   ├── test_timer.py          # Timer utility tests
+│   └── test_utils.py          # Test utilities and helpers
 └── pyproject.toml            # Modern Python packaging
 ```
 
@@ -53,11 +60,36 @@ This will automatically install all required dependencies with the correct versi
 
 ## Configuration
 
+### Email Notifications
+
+Configure email notifications using one of these methods:
+
+**Method 1: Environment Variables (Recommended for Production)**
+
+```bash
+export CHICKEN_GATE_EMAIL_SENDER="your-email@gmail.com"
+export CHICKEN_GATE_EMAIL_PASSWORD="your-app-password"  # Use Gmail App Password
+export CHICKEN_GATE_EMAIL_RECIPIENT="recipient@gmail.com"
+```
+
+**Method 2: Configuration File (For Development)**
+
+```bash
+# Copy the template and edit with your values
+cp src/chicken_gate/shared/secret.toml.template secret.toml
+# Edit secret.toml with your actual credentials
+```
+
+**Gmail Setup:** Enable 2-factor authentication and generate an App Password at Google Account → Security → App passwords.
+
+See `docs/configuration.md` for detailed setup instructions.
+
+### Hardware Configuration
+
 Edit the configuration in `src/chicken_gate/shared/config.py`:
 
 - GPIO pin assignments
 - Gate timing parameters
-- Email settings
 - API endpoints
 
 ## Running the Services
