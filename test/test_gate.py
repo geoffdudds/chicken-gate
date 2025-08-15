@@ -1,5 +1,7 @@
 import sys
 import os
+from unittest.mock import patch
+
 # Add src to Python path for testing
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
@@ -40,18 +42,19 @@ def test_lowers_until_timeout():
 
 
 def test_closes_until_timeout():
-    close_time = 390
-    gate = Gate(init_posn=0, close_time=close_time)
-    gate.close()
-    gate.tick()
-
-    elapsed_time = 0
-    while elapsed_time < close_time - 0.1:
+    with patch('chicken_gate.gate.gate.send_email'):
+        close_time = 390
+        gate = Gate(init_posn=0, close_time=close_time)
+        gate.close()
         gate.tick()
-        assert gate.get_cmd() == Cmd.CLOSE
-        elapsed_time += 0.1
-    gate.tick(elapsed_time=0.2)
-    assert gate.get_cmd() == Cmd.STOP
+
+        elapsed_time = 0
+        while elapsed_time < close_time - 0.1:
+            gate.tick()
+            assert gate.get_cmd() == Cmd.CLOSE
+            elapsed_time += 0.1
+        gate.tick(elapsed_time=0.2)
+        assert gate.get_cmd() == Cmd.STOP
 
 
 def test_reset_position():

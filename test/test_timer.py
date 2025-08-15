@@ -8,6 +8,7 @@ import pytest
 import time
 
 
+@pytest.mark.slow
 def test_tracks_elapsed_time():
     timer = Timer()
     timer.start()
@@ -17,14 +18,16 @@ def test_tracks_elapsed_time():
     assert timer.get_time() == pytest.approx(1, abs=0.03)
 
 
+@pytest.mark.slow
 def test_check_if_time_elapsed():
     timer = Timer()
     timer.start()
     time.sleep(0.5)
-    assert timer.has_elapsed(0.48) == True
-    assert timer.has_elapsed(0.52) == False
+    assert timer.has_elapsed(0.48)
+    assert not timer.has_elapsed(0.52)
 
 
+@pytest.mark.slow
 def test_time_since_last_read():
     timer = Timer()
     timer.start()
