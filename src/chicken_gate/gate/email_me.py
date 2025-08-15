@@ -1,16 +1,17 @@
+import os
 import smtplib
 import ssl
-import toml
-import os
 from pathlib import Path
+
+import toml
 
 
 def get_email_config():
     """Get email configuration from environment variables or secret.toml file"""
     # Try environment variables first (recommended for production)
-    sender = os.getenv('CHICKEN_GATE_EMAIL_SENDER')
-    password = os.getenv('CHICKEN_GATE_EMAIL_PASSWORD')
-    recipient = os.getenv('CHICKEN_GATE_EMAIL_RECIPIENT')
+    sender = os.getenv("CHICKEN_GATE_EMAIL_SENDER")
+    password = os.getenv("CHICKEN_GATE_EMAIL_PASSWORD")
+    recipient = os.getenv("CHICKEN_GATE_EMAIL_RECIPIENT")
 
     if sender and password and recipient:
         return sender, password, recipient
@@ -19,8 +20,14 @@ def get_email_config():
     current_dir = Path.cwd()
     possible_locations = [
         current_dir / "secret.toml",  # Current working directory
-        current_dir / "src" / "chicken_gate" / "shared" / "secret.toml",  # From project root
-        Path(__file__).parent.parent / "shared" / "secret.toml",  # Relative to this module
+        current_dir
+        / "src"
+        / "chicken_gate"
+        / "shared"
+        / "secret.toml",  # From project root
+        Path(__file__).parent.parent
+        / "shared"
+        / "secret.toml",  # Relative to this module
     ]
 
     secret_file = None
@@ -35,7 +42,7 @@ def get_email_config():
             return (
                 secret["secrets"]["sender"],
                 secret["secrets"]["password"],
-                secret["secrets"]["recipient"]
+                secret["secrets"]["recipient"],
             )
         except (KeyError, toml.TomlDecodeError) as e:
             raise ValueError(f"Invalid secret.toml format: {e}")

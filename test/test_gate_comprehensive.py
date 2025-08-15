@@ -3,13 +3,12 @@ Comprehensive unit tests for the Gate class.
 Tests the core gate logic without hardware dependencies.
 """
 
-import sys
 import os
-from unittest.mock import Mock, patch
-import time
+import sys
+from unittest.mock import patch
 
 # Add src to Python path for testing
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from chicken_gate.gate.gate import Gate
 from chicken_gate.gate.gate_cmd import Cmd
@@ -109,7 +108,7 @@ class TestGateMovement:
     def test_gate_stops_at_limits(self):
         """Test that gate stops at 0% and 100% positions"""
         # Test lower limit - patch the email to avoid network dependency
-        with patch('chicken_gate.gate.gate.send_email'):
+        with patch("chicken_gate.gate.gate.send_email"):
             gate = Gate(init_posn=5, open_time=1)  # Very fast opening
             gate.open()
             gate.tick()  # Process command
@@ -268,6 +267,7 @@ class TestGateCommandQueuing:
 if __name__ == "__main__":
     try:
         import pytest
+
         pytest.main([__file__])
     except ImportError:
         print("pytest not available, running tests manually...")

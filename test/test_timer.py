@@ -1,11 +1,14 @@
-import sys
 import os
+import sys
+
 # Add src to Python path for testing
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
+import time
+
+import pytest
 
 from chicken_gate.shared.timer import Timer
-import pytest
-import time
 
 
 @pytest.mark.slow

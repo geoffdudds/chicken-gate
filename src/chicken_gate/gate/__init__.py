@@ -12,4 +12,4 @@ from .gate_cmd import Cmd
 # from .main import main
 # from .schedule import Schedule
 
-__all__ = ['Gate', 'Cmd']
+__all__ = ["Gate", "Cmd"]

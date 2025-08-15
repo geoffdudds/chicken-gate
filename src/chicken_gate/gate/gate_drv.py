@@ -10,9 +10,9 @@ class Gate_drv:
         GPIO.setwarnings(False)
 
         # GPIO pin assignments
-        self.CLOSED_SWITCH_PIN = 2   # physical pin 3, GPIO 2
-        self.RELAY1_PIN = 4          # physical pin 7, GPIO 4
-        self.RELAY2_PIN = 17         # physical pin 11, GPIO 17
+        self.CLOSED_SWITCH_PIN = 2  # physical pin 3, GPIO 2
+        self.RELAY1_PIN = 4  # physical pin 7, GPIO 4
+        self.RELAY2_PIN = 17  # physical pin 11, GPIO 17
 
         # Set up switch input with pull-up (normally closed switch)
         GPIO.setup(self.CLOSED_SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)

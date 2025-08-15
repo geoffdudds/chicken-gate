@@ -3,17 +3,24 @@ Mock implementation of Gate_drv for testing purposes.
 This replaces the RPi.GPIO dependency with a simulated interface.
 """
 
-from .gate import Gate
-from .gate_cmd import Cmd
 import logging
 
-logger = logging.getLogger('chicken-gate-mock')
+from .gate import Gate
+from .gate_cmd import Cmd
+
+logger = logging.getLogger("chicken-gate-mock")
 
 
 class Gate_drv:
     """Mock gate driver that simulates hardware without RPi.GPIO dependency"""
 
-    def __init__(self, gate: Gate, initial_closed_switch=False, initial_open_switch=False, auto_reset_position=True):
+    def __init__(
+        self,
+        gate: Gate,
+        initial_closed_switch=False,
+        initial_open_switch=False,
+        auto_reset_position=True,
+    ):
         # Simulate GPIO pin assignments (no actual GPIO setup)
         self.CLOSED_SWITCH_PIN = 2
         self.RELAY1_PIN = 4
@@ -51,14 +58,11 @@ class Gate_drv:
 
     def get_relay_states(self):
         """Test helper to check relay states"""
-        return {
-            'relay1': self._relay1_state,
-            'relay2': self._relay2_state
-        }
+        return {"relay1": self._relay1_state, "relay2": self._relay2_state}
 
     def tick(self):
         # Auto-simulate closed switch activation BEFORE calling gate.tick() (unless manually overridden)
-        if not hasattr(self, '_manual_switch_override'):
+        if not hasattr(self, "_manual_switch_override"):
             gate_position = self.gate.get_posn()
             # Closed switch activates at ~95% closed (position >= 95)
             # This simulates the physical switch being pressed when gate is almost fully closed

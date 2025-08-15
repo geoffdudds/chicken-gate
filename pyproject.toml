@@ -36,7 +36,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=6.0", "black>=22.0", "flake8>=4.0", "mypy>=0.910"]
+dev = ["pytest>=6.0", "ruff>=0.1.0", "mypy>=0.910"]
+ci = [
+    "pytest>=6.0",
+    "ruff>=0.1.0",
+    "mypy>=0.910",
+    "flask>=2.0.0",
+    "requests>=2.25.0",
+    "suntime>=1.2.0",
+    "apscheduler>=3.8.0",
+    "toml>=0.10.0",
+    "Pillow>=8.0.0",
+    "importlib-metadata>=4.0.0",
+    "typing-extensions>=3.10.0",
+    "astral>=2.2.0",
+    # Note: RPi.GPIO excluded for CI compatibility
+]
 
 [project.scripts]
 chicken-gate-main = "chicken_gate.gate.main:main"
@@ -50,23 +65,40 @@ chicken-gate-web = "chicken_gate.web.app:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.black]
+[tool.ruff]
+target-version = "py38"
 line-length = 88
-target-version = ['py38']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
+exclude = [
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "build",
+    "dist",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
+]
+ignore = [
+    "E501", # line too long, handled by formatter
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.mypy]
 python_version = "3.8"

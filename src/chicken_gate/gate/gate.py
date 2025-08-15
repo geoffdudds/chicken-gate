@@ -1,10 +1,11 @@
-from .gate_cmd import Cmd
-from .email_me import send_email
 import logging
 
+from .email_me import send_email
+from .gate_cmd import Cmd
+
 # Configure logging for system journal
-logging.basicConfig(level=logging.INFO, format='%(name)s: %(message)s')
-logger = logging.getLogger('chicken-gate')
+logging.basicConfig(level=logging.INFO, format="%(name)s: %(message)s")
+logger = logging.getLogger("chicken-gate")
 
 
 class Gate:
@@ -49,7 +50,9 @@ class Gate:
         self.__errors.clear()
         self.__open_disabled = False
         if error_count > 0:
-            self.__add_diagnostic(f"cleared {error_count} error(s) - gate opening re-enabled")
+            self.__add_diagnostic(
+                f"cleared {error_count} error(s) - gate opening re-enabled"
+            )
 
     def get_diagnostic_messages(self) -> list:
         """Returns list of recent diagnostic messages for website display"""
@@ -71,7 +74,7 @@ class Gate:
             "closed_switch_pressed": self.__closed_switch_pressed,
             "open_switch_pressed": self.__open_switch_pressed,
             "errors": self.get_errors(),
-            "diagnostic_messages": self.get_diagnostic_messages()
+            "diagnostic_messages": self.get_diagnostic_messages(),
         }
 
     def tick(self, elapsed_time=0.1):
@@ -180,6 +183,7 @@ class Gate:
     def __add_diagnostic(self, diagnostic_msg: str):
         """Add a diagnostic message to the diagnostic list (keep last 20) and log to system"""
         from datetime import datetime
+
         timestamped_msg = f"{datetime.now().strftime('%H:%M:%S')}: {diagnostic_msg}"
         self.__diagnostic_messages.append(timestamped_msg)
 

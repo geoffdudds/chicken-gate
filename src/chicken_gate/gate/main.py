@@ -1,13 +1,12 @@
-import time
-import os
 import json
+import os
+import time
 from datetime import datetime
 
 from .gate import Gate
-from .schedule import Schedule
-from .gate_drv import Gate_drv
 from .gate_cmd import Cmd
-
+from .gate_drv import Gate_drv
+from .schedule import Schedule
 
 # File paths for web interface communication
 STATUS_FILE = "gate_status.json"
@@ -41,11 +40,11 @@ def check_command_file():
     cmd_file = "gate_cmd.txt"
     if os.path.exists(cmd_file):
         try:
-            with open(cmd_file, "r") as f:
+            with open(cmd_file) as f:
                 command = f.read().strip()
             os.remove(cmd_file)  # Remove after reading to prevent re-execution
             return command
-        except (IOError, OSError):
+        except OSError:
             return None
     return None
 

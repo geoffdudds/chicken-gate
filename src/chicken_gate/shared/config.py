@@ -2,7 +2,6 @@
 Configuration settings for the chicken gate system.
 """
 
-import os
 from pathlib import Path
 
 # File paths for communication between processes
@@ -24,9 +23,11 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 # Virtual environment path
 VENV_PATH = PROJECT_ROOT / ".venv"
 
+
 def get_status_file_path():
     """Get the full path to the status file."""
     return PROJECT_ROOT / STATUS_FILE
+
 
 def get_command_file_path():
     """Get the full path to the command file."""

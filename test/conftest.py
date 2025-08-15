@@ -5,9 +5,10 @@ This file is automatically discovered by pytest and provides shared test setup.
 
 import os
 import sys
-import pytest
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 # Add src to Python path for testing
 project_root = Path(__file__).parent.parent
@@ -23,14 +24,14 @@ def setup_test_environment():
     Runs once at the beginning of the test session.
     """
     # Set testing flag
-    os.environ['TESTING'] = 'true'
+    os.environ["TESTING"] = "true"
 
     # Set up test email configuration to prevent config errors
     original_env = {}
     test_email_vars = {
-        'CHICKEN_GATE_EMAIL_SENDER': 'test@example.com',
-        'CHICKEN_GATE_EMAIL_PASSWORD': 'test_password',
-        'CHICKEN_GATE_EMAIL_RECIPIENT': 'test_recipient@example.com'
+        "CHICKEN_GATE_EMAIL_SENDER": "test@example.com",
+        "CHICKEN_GATE_EMAIL_PASSWORD": "test_password",
+        "CHICKEN_GATE_EMAIL_RECIPIENT": "test_recipient@example.com",
     }
 
     # Store original values and set test values
@@ -54,7 +55,7 @@ def mock_email_send():
     Fixture to mock email sending in tests.
     Use this when you want to test email functionality without actually sending emails.
     """
-    with patch('chicken_gate.gate.email_me.send_email', return_value=True) as mock:
+    with patch("chicken_gate.gate.email_me.send_email", return_value=True) as mock:
         yield mock
 
 
@@ -64,7 +65,7 @@ def auto_mock_email():
     Automatically mock email sending for all tests to prevent actual email sending.
     This runs for every test unless explicitly disabled.
     """
-    with patch('chicken_gate.gate.email_me.send_email', return_value=True):
+    with patch("chicken_gate.gate.email_me.send_email", return_value=True):
         yield
 
 
@@ -73,7 +74,7 @@ def mock_rpi_gpio():
     """
     Fixture to mock RPi.GPIO for testing on non-Pi systems.
     """
-    with patch.dict('sys.modules', {'RPi': object(), 'RPi.GPIO': object()}):
+    with patch.dict("sys.modules", {"RPi": object(), "RPi.GPIO": object()}):
         # Import and patch after modules are in sys.modules
         from unittest.mock import Mock
 
@@ -93,7 +94,7 @@ def mock_rpi_gpio():
         mock_gpio.output = Mock()
         mock_gpio.cleanup = Mock()
 
-        with patch('RPi.GPIO', mock_gpio):
+        with patch("RPi.GPIO", mock_gpio):
             yield mock_gpio
 
 
@@ -107,7 +108,11 @@ def clean_environment():
     original_env = dict(os.environ)
 
     # Clear test email vars to test config loading
-    test_vars = ['CHICKEN_GATE_EMAIL_SENDER', 'CHICKEN_GATE_EMAIL_PASSWORD', 'CHICKEN_GATE_EMAIL_RECIPIENT']
+    test_vars = [
+        "CHICKEN_GATE_EMAIL_SENDER",
+        "CHICKEN_GATE_EMAIL_PASSWORD",
+        "CHICKEN_GATE_EMAIL_RECIPIENT",
+    ]
     for var in test_vars:
         os.environ.pop(var, None)
 
@@ -121,7 +126,11 @@ def clean_environment():
 # Pytest markers for different test types
 def pytest_configure(config):
     """Configure custom pytest markers"""
-    config.addinivalue_line("markers", "slow: marks tests as slow (may take several seconds)")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (may take several seconds)"
+    )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "hardware: marks tests that require actual hardware")
+    config.addinivalue_line(
+        "markers", "hardware: marks tests that require actual hardware"
+    )

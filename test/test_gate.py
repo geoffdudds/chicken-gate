@@ -1,13 +1,13 @@
-import sys
 import os
+import sys
 from unittest.mock import patch
 
 # Add src to Python path for testing
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
 
 from chicken_gate.gate.gate import Gate
 from chicken_gate.gate.gate_cmd import Cmd
-import time
 
 
 def test_100_percent_when_closed_switch_is_pressed():
@@ -42,7 +42,7 @@ def test_lowers_until_timeout():
 
 
 def test_closes_until_timeout():
-    with patch('chicken_gate.gate.gate.send_email'):
+    with patch("chicken_gate.gate.gate.send_email"):
         close_time = 390
         gate = Gate(init_posn=0, close_time=close_time)
         gate.close()

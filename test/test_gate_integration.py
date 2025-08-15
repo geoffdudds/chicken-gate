@@ -3,22 +3,21 @@ Integration tests for the complete gate system using mock hardware.
 Tests the interaction between Gate and Gate_drv without RPi.GPIO dependency.
 """
 
-import sys
 import os
-import time
-import pytest
+import sys
 from unittest.mock import patch
 
+import pytest
+
 # Add src to Python path for testing
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 # Set testing environment before imports
-os.environ['TESTING'] = 'true'
+os.environ["TESTING"] = "true"
 
 from chicken_gate.gate.gate import Gate
 from chicken_gate.gate.gate_cmd import Cmd
 from chicken_gate.gate.gate_drv_mock import Gate_drv
-
 
 # The mock_email_send fixture is now provided by conftest.py
 # and automatically available to all tests
@@ -31,9 +30,7 @@ class TestGateDriverIntegration:
         """Set up test environment for each test"""
         self.gate = Gate(init_posn=0, open_time=10, close_time=10)
         self.driver = Gate_drv(
-            self.gate,
-            initial_closed_switch=False,
-            initial_open_switch=False
+            self.gate, initial_closed_switch=False, initial_open_switch=False
         )
 
     def test_driver_initialization(self):
@@ -42,8 +39,8 @@ class TestGateDriverIntegration:
         assert self.driver.cmd == Cmd.STOP
 
         relays = self.driver.get_relay_states()
-        assert not relays['relay1']
-        assert not relays['relay2']
+        assert not relays["relay1"]
+        assert not relays["relay2"]
 
     def test_driver_initialization_with_closed_switch(self):
         """Test driver initialization when closed switch is pressed"""
@@ -66,8 +63,8 @@ class TestGateDriverIntegration:
 
         # Check that relays are set correctly for opening
         relays = self.driver.get_relay_states()
-        assert relays['relay1']  # Open relay should be on
-        assert not relays['relay2']  # Close relay should be off
+        assert relays["relay1"]  # Open relay should be on
+        assert not relays["relay2"]  # Close relay should be off
 
         # Simulate movement over time
         initial_position = self.gate.get_posn()
@@ -90,8 +87,8 @@ class TestGateDriverIntegration:
 
         # Check that relays are set correctly for closing
         relays = self.driver.get_relay_states()
-        assert not relays['relay1']  # Open relay should be off
-        assert relays['relay2']  # Close relay should be on
+        assert not relays["relay1"]  # Open relay should be off
+        assert relays["relay2"]  # Close relay should be on
 
         # Simulate movement over time
         initial_position = self.gate.get_posn()
@@ -111,7 +108,7 @@ class TestGateDriverIntegration:
         # Verify it's opening
         assert self.gate.is_opening()
         relays = self.driver.get_relay_states()
-        assert relays['relay1']
+        assert relays["relay1"]
 
         # Stop the gate
         self.gate.stop()
@@ -120,8 +117,8 @@ class TestGateDriverIntegration:
         # Verify it stopped
         assert not self.gate.is_moving()
         relays = self.driver.get_relay_states()
-        assert not relays['relay1']
-        assert not relays['relay2']
+        assert not relays["relay1"]
+        assert not relays["relay2"]
 
     def test_switch_detection(self):
         """Test that the closed switch is properly detected"""
@@ -179,29 +176,31 @@ class TestGateDriverIntegration:
         relays = self.driver.get_relay_states()
 
         # Initially both relays should be off
-        assert not relays['relay1']
-        assert not relays['relay2']
+        assert not relays["relay1"]
+        assert not relays["relay2"]
 
         # Start opening
         self.gate.open()
         self.driver.tick()
         relays = self.driver.get_relay_states()
-        assert relays['relay1']
-        assert not relays['relay2']
+        assert relays["relay1"]
+        assert not relays["relay2"]
 
         # Switch to closing
         self.gate.close()
         self.driver.tick()
         relays = self.driver.get_relay_states()
-        assert not relays['relay1']
-        assert relays['relay2']
+        assert not relays["relay1"]
+        assert relays["relay2"]
 
         # Stop
         self.gate.stop()
         self.driver.tick()
         relays = self.driver.get_relay_states()
-        assert not relays['relay1']
-        assert not relays['relay2']
+        assert not relays["relay1"]
+        assert not relays["relay2"]
+
+
 class TestGateDriverRealTimeSimulation:
     """Test gate behavior in real-time-like scenarios"""
 
@@ -228,7 +227,7 @@ class TestGateDriverRealTimeSimulation:
         assert tick_count < max_ticks  # Didn't hit safety limit
 
     @pytest.mark.slow
-    @patch('chicken_gate.gate.email_me.send_email')
+    @patch("chicken_gate.gate.email_me.send_email")
     def test_full_close_cycle(self, mock_send_email):
         """Test a complete close cycle from open to closed"""
         gate = Gate(init_posn=0, open_time=5, close_time=5)  # 5-second cycles
@@ -299,7 +298,7 @@ if __name__ == "__main__":
     test_classes = [
         TestGateDriverIntegration,
         TestGateDriverRealTimeSimulation,
-        TestErrorConditions
+        TestErrorConditions,
     ]
 
     for test_class in test_classes:
@@ -307,12 +306,12 @@ if __name__ == "__main__":
         instance = test_class()
 
         # Run setup if it exists
-        if hasattr(instance, 'setup_method'):
+        if hasattr(instance, "setup_method"):
             instance.setup_method()
 
         # Run all test methods
         for method_name in dir(instance):
-            if method_name.startswith('test_'):
+            if method_name.startswith("test_"):
                 print(f"  {method_name}...")
                 method = getattr(instance, method_name)
                 try:

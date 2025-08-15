@@ -1,8 +1,9 @@
+import os
+
 from apscheduler.schedulers.background import BackgroundScheduler
+
 from .gate_cmd import Cmd
 from .suntimes import SunTimes
-
-import os
 
 
 class Schedule:
@@ -40,9 +41,13 @@ class Schedule:
             "dusk": self.__suntime.get_dusk().isoformat(),
             "sunrise": self.__suntime.get_sunrise().isoformat(),
             "sunset": self.__suntime.get_sunset().isoformat(),
-            "gate_open_time": self.__open_time.strftime("%H:%M") if self.__open_time else "Unknown",
-            "gate_close_time": self.__close_time.strftime("%H:%M") if self.__close_time else "Unknown",
-            "next_update": "00:00 (midnight)"
+            "gate_open_time": self.__open_time.strftime("%H:%M")
+            if self.__open_time
+            else "Unknown",
+            "gate_close_time": self.__close_time.strftime("%H:%M")
+            if self.__close_time
+            else "Unknown",
+            "next_update": "00:00 (midnight)",
         }
 
     def __add_to_log(self, entry):

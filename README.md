@@ -1,5 +1,7 @@
 # Chicken Gate Control System
 
+[![Tests](https://github.com/geoffdudds/chicken-gate/actions/workflows/tests.yml/badge.svg)](https://github.com/geoffdudds/chicken-gate/actions/workflows/tests.yml)
+
 An automated chicken gate control system for Raspberry Pi with web interface.
 
 ## Features
