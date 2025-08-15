@@ -32,22 +32,22 @@ class TestEmailConfiguration:
     def test_toml_file_fallback(self):
         """Test that TOML file is used when env vars not available"""
         # Clear any existing env vars
-        with patch.dict(os.environ, {}, clear=True):
-            # Mock the toml file
-            with patch("pathlib.Path.exists", return_value=True), patch(
-                "toml.load",
-                return_value={
-                    "secrets": {
-                        "sender": "file@test.com",
-                        "password": "file_pass",
-                        "recipient": "file_recipient@test.com",
-                    }
-                },
-            ):
-                sender, password, recipient = get_email_config()
-                assert sender == "file@test.com"
-                assert password == "file_pass"
-                assert recipient == "file_recipient@test.com"
+        with patch.dict(os.environ, {}, clear=True), patch(
+            "pathlib.Path.exists", return_value=True
+        ), patch(
+            "toml.load",
+            return_value={
+                "secrets": {
+                    "sender": "file@test.com",
+                    "password": "file_pass",
+                    "recipient": "file_recipient@test.com",
+                }
+            },
+        ):
+            sender, password, recipient = get_email_config()
+            assert sender == "file@test.com"
+            assert password == "file_pass"
+            assert recipient == "file_recipient@test.com"
 
     def test_missing_configuration_error(self):
         """Test error when no configuration is available"""

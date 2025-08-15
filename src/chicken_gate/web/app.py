@@ -347,7 +347,7 @@ def create_rtsp_info_image():
         # Use default font (avoid font file dependencies)
         try:
             font = ImageFont.load_default()
-        except:
+        except Exception:
             font = None
 
         # Camera info text
@@ -537,4 +537,4 @@ if __name__ == "__main__":
         print(f"  http://YOUR_PI_IP:{port}")
         print(f"  http://localhost:{port} (if running locally)")
 
-    app.run(host="0.0.0.0", port=port, debug=True if port == 5000 else False)
+    app.run(host="0.0.0.0", port=port, debug=port == 5000)

@@ -45,7 +45,7 @@ def get_email_config():
                 secret["secrets"]["recipient"],
             )
         except (KeyError, toml.TomlDecodeError) as e:
-            raise ValueError(f"Invalid secret.toml format: {e}")
+            raise ValueError(f"Invalid secret.toml format: {e}") from e
 
     # If neither works, provide helpful error with template location
     template_location = Path(__file__).parent.parent / "shared" / "secret.toml.template"

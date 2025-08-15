@@ -45,7 +45,7 @@ class TestGateDriverIntegration:
     def test_driver_initialization_with_closed_switch(self):
         """Test driver initialization when closed switch is pressed"""
         gate = Gate(init_posn=0, open_time=10, close_time=10)
-        driver = Gate_drv(gate, initial_closed_switch=True)
+        _ = Gate_drv(gate, initial_closed_switch=True)
 
         # Should reset to closed position (100)
         assert gate.get_posn() == 100
