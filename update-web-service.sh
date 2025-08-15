@@ -27,6 +27,11 @@ echo "🛑 Ensuring no service conflicts..."
 sudo systemctl stop $OTHER_SERVICE 2>/dev/null || true
 sudo systemctl disable $OTHER_SERVICE 2>/dev/null || true
 
+# Kill any manually running web app processes
+echo "🧹 Cleaning up manual processes..."
+pkill -f "web_app.py" 2>/dev/null || true
+sleep 2  # Give processes time to terminate
+
 # Copy updated service file
 echo "📋 Updating service file ($SERVICE_FILE)..."
 sudo cp ./$SERVICE_FILE /etc/systemd/system/
