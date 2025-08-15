@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chicken-gate"
+version = "1.0.0"
+description = "Automated chicken gate control system with web interface"
+readme = "README.md"
+authors = [{ name = "Geoff Dudds", email = "geoff@example.com" }]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Home Automation",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "flask>=2.0.0",
+    "requests>=2.25.0",
+    "RPi.GPIO>=0.7.0",
+    "suntime>=1.2.0",
+    "apscheduler>=3.8.0",
+    "toml>=0.10.0",
+    "Pillow>=8.0.0",
+    "importlib-metadata>=4.0.0",
+    "typing-extensions>=3.10.0",
+    "astral>=2.2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=6.0", "black>=22.0", "flake8>=4.0", "mypy>=0.910"]
+
+[project.scripts]
+chicken-gate-main = "chicken_gate.gate.main:main"
+chicken-gate-web = "chicken_gate.web.app:main"
+
+[project.urls]
+"Homepage" = "https://github.com/geoffdudds/chicken-gate"
+"Repository" = "https://github.com/geoffdudds/chicken-gate"
+"Bug Tracker" = "https://github.com/geoffdudds/chicken-gate/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

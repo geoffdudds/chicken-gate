@@ -1,15 +1,15 @@
 #!/bin/bash
 
-echo "🔄 Updating Chicken Gate Main Service"
-echo "====================================="
+echo "� Installing/Updating Chicken Gate Main Service"
+echo "==============================================="
 
-echo "📋 Updating service file (chicken-gate.service)..."
-sudo cp ./chicken-gate.service /etc/systemd/system/
+echo "📋 Installing service file (chicken-gate.service)..."
+sudo cp ./systemd/chicken-gate.service /etc/systemd/system/
 
 echo "🔄 Reloading systemd daemon..."
 sudo systemctl daemon-reload
 
-echo "🚀 Enabling and restarting chicken-gate service..."
+echo "🚀 Enabling and starting chicken-gate service..."
 sudo systemctl enable chicken-gate.service
 sudo systemctl restart chicken-gate.service
 
@@ -19,7 +19,7 @@ echo "📊 Service Status:"
 sudo systemctl status chicken-gate.service --no-pager
 
 echo ""
-echo "✅ Update complete!"
+echo "✅ Installation complete!"
 
 echo ""
 echo "📋 Service manages:"

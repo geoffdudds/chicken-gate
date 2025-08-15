@@ -1,12 +1,12 @@
 import time
-
-from gate import Gate
-from schedule import Schedule
-from gate_drv import Gate_drv
-from gate_cmd import Cmd
 import os
 import json
 from datetime import datetime
+
+from .gate import Gate
+from .schedule import Schedule
+from .gate_drv import Gate_drv
+from .gate_cmd import Cmd
 
 
 # File paths for web interface communication

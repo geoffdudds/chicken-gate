@@ -1,5 +1,5 @@
-from gate_cmd import Cmd
-from email_me import send_email
+from .gate_cmd import Cmd
+from .email_me import send_email
 import logging
 
 # Configure logging for system journal

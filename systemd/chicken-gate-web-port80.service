@@ -1,17 +1,17 @@
 [Unit]
-Description=Chicken Gate Web Interface
+Description=Chicken Gate Web Interface (Port 80)
 After=multi-user.target network-online.target chicken-gate.service
 Wants=network-online.target
 Requires=chicken-gate.service
 
 [Service]
 Type=simple
-User=pi
-Group=pi
+User=root
+Group=root
 WorkingDirectory=/home/pi/sw/chicken-gate
 Environment=PATH=/home/pi/sw/chicken-gate/.venv/bin:/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONPATH=/home/pi/sw/chicken-gate/src
-ExecStart=/home/pi/sw/chicken-gate/.venv/bin/python3 -u web_app.py --port5000
+ExecStart=/home/pi/sw/chicken-gate/scripts/chicken-gate-web --port80
 Restart=always
 RestartSec=5s
 StandardOutput=journal

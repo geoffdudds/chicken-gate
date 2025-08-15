@@ -9,13 +9,11 @@ import os
 import json
 import requests
 from datetime import datetime
+from ..shared.config import CAMERA_IP, CAMERA_USERNAME, CAMERA_PASSWORD
 
 app = Flask(__name__)
 
-# Camera configuration
-CAMERA_IP = "192.168.0.135"
-CAMERA_USERNAME = "chickencam"   # Your Tapo camera username
-CAMERA_PASSWORD = "password"     # Your Tapo camera password
+# Camera configuration from shared config
 
 # Common ports for IP cameras (focus on working ones from your test)
 CAMERA_PORTS = [554, 443, 8443, 80, 8080, 88, 1935]
@@ -486,8 +484,8 @@ if __name__ == '__main__':
         print("  http://localhost (if running locally)")
         print("")
         print("NOTE: Running on port 80 requires sudo privileges!")
-        print("If you get a permission error, run with: sudo python3 web_app.py")
-        print("For development mode (port 5000), use: python3 web_app.py --port5000")
+        print("If you get a permission error, run with: sudo chicken-gate-web")
+        print("For development mode (port 5000), use: chicken-gate-web --port5000")
     else:
         print(f"Running on port {port} (development mode) - web interface will be available at:")
         print(f"  http://chicken-gate:{port} (if using Tailscale MagicDNS)")

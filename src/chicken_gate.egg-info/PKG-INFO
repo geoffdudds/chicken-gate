@@ -1,0 +1,183 @@
+Metadata-Version: 2.4
+Name: chicken-gate
+Version: 1.0.0
+Summary: Automated chicken gate control system with web interface
+Author-email: Geoff Dudds <geoff@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/geoffdudds/chicken-gate
+Project-URL: Repository, https://github.com/geoffdudds/chicken-gate
+Project-URL: Bug Tracker, https://github.com/geoffdudds/chicken-gate/issues
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Home Automation
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: flask>=2.0.0
+Requires-Dist: requests>=2.25.0
+Requires-Dist: RPi.GPIO>=0.7.0
+Requires-Dist: suntime>=1.2.0
+Requires-Dist: apscheduler>=3.8.0
+Requires-Dist: toml>=0.10.0
+Requires-Dist: Pillow>=8.0.0
+Requires-Dist: importlib-metadata>=4.0.0
+Requires-Dist: typing-extensions>=3.10.0
+Requires-Dist: astral>=2.2.0
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: black>=22.0; extra == "dev"
+Requires-Dist: flake8>=4.0; extra == "dev"
+Requires-Dist: mypy>=0.910; extra == "dev"
+
+# Chicken Gate Control System
+
+An automated chicken gate control system for Raspberry Pi with web interface.
+
+## Features
+
+- Automatic sunrise/sunset scheduling using astronomical calculations
+- Manual gate control via web interface
+- RESTful API for external control
+- Email notifications for gate events
+- Systemd service integration
+- Robust error handling and recovery
+
+## Project Structure
+
+```
+chicken-gate/
+├── src/chicken_gate/           # Main package
+│   ├── gate/                   # Gate control process
+│   │   ├── main.py            # Main gate control loop
+│   │   ├── gate.py            # Gate hardware interface
+│   │   ├── schedule.py        # Sunrise/sunset scheduling
+│   │   ├── gate_drv.py        # GPIO driver interface
+│   │   ├── gate_cmd.py        # Command processing
+│   │   ├── suntimes.py        # Sunrise/sunset calculations
+│   │   └── email_me.py        # Email notification system
+│   ├── web/                   # Web interface process
+│   │   ├── app.py             # Flask web application
+│   │   └── templates/         # HTML templates
+│   └── shared/                # Shared modules
+│       ├── config.py          # Configuration constants
+│       └── timer.py           # Timing utilities
+├── scripts/                   # Entry point scripts
+│   ├── chicken-gate-main      # Gate process entry point
+│   └── chicken-gate-web       # Web process entry point
+├── systemd/                   # Systemd service files
+│   ├── chicken-gate.service         # Gate control service
+│   ├── chicken-gate-web.service     # Web interface service
+│   └── chicken-gate-web-port80.service  # Web on port 80
+├── test/                      # Unit tests
+└── pyproject.toml            # Modern Python packaging
+```
+
+## Installation
+
+1. Clone the repository to your Raspberry Pi
+2. Install in development mode:
+   ```bash
+   pip install -e .
+   ```
+
+## Configuration
+
+Edit the configuration in `src/chicken_gate/shared/config.py`:
+
+- GPIO pin assignments
+- Gate timing parameters
+- Email settings
+- API endpoints
+
+## Running the Services
+
+### Manual Testing
+
+```bash
+# Test gate control
+chicken-gate-main
+
+# Test web interface
+chicken-gate-web
+```
+
+### Systemd Services
+
+```bash
+# Install services
+sudo cp systemd/*.service /etc/systemd/system/
+sudo systemctl daemon-reload
+
+# Enable and start services
+sudo systemctl enable chicken-gate.service
+sudo systemctl enable chicken-gate-web.service
+sudo systemctl start chicken-gate.service
+sudo systemctl start chicken-gate-web.service
+
+# Check status
+sudo systemctl status chicken-gate.service
+sudo systemctl status chicken-gate-web.service
+```
+
+## Updating
+
+Use the provided update scripts:
+
+```bash
+# Update gate service
+./update-gate-service.sh
+
+# Update web service
+./update-web-service.sh
+```
+
+These scripts will:
+
+- Stop the systemd service
+- Kill any manually running processes
+- Update the code
+- Restart the service
+
+## API Endpoints
+
+- `GET /api/status` - Get current gate status
+- `POST /api/open` - Open the gate
+- `POST /api/close` - Close the gate
+- `POST /api/auto` - Enable automatic mode
+
+## Development
+
+Install development dependencies:
+
+```bash
+pip install -e .[dev]
+```
+
+Run tests:
+
+```bash
+pytest test/
+```
+
+Format code:
+
+```bash
+black src/ test/
+```
+
+## Hardware Requirements
+
+- Raspberry Pi (any model with GPIO)
+- Motor driver circuit for gate mechanism
+- Limit switches for gate position detection
+- Power supply for gate motor
+
+## License
+
+MIT License - see LICENSE file for details.

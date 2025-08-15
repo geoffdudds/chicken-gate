@@ -1,0 +1,3 @@
+[console_scripts]
+chicken-gate-main = chicken_gate.gate.main:main
+chicken-gate-web = chicken_gate.web.app:main

@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=idle
 WorkingDirectory=/home/pi/sw/chicken-gate
 Environment=PATH=/home/pi/sw/chicken-gate/.venv/bin:$PATH
-ExecStart=/home/pi/sw/chicken-gate/.venv/bin/python3 -u /home/pi/sw/chicken-gate/src/main.py
+ExecStart=/home/pi/sw/chicken-gate/scripts/chicken-gate-main
 Restart=always
 RestartSec=5s
 

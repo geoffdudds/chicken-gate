@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from gate_cmd import Cmd
-from suntimes import SunTimes
+from .gate_cmd import Cmd
+from .suntimes import SunTimes
 
 import os
 
@@ -49,7 +49,7 @@ class Schedule:
         print(entry)
 
     def __restart_service(self):
-        # required for blynk to keep working
+        # restart the service to pick up any changes
         os.system("/usr/bin/systemctl restart chicken-gate.service")
 
     def __update_schedule(self):
