@@ -3,8 +3,8 @@
 Entry point script for the chicken gate web interface.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add the src directory to the Python path
@@ -16,18 +16,27 @@ sys.path.insert(0, str(src_path))
 os.chdir(project_root)
 
 if __name__ == "__main__":
-    from chicken_gate.web.app import app
     import sys
+
+    from chicken_gate.web.app import app
 
     # Check for port argument
     port = 5000
-    if '--port5000' in sys.argv:
+    if "--port5000" in sys.argv:
         port = 5000
-    elif '--port80' in sys.argv:
+    elif "--port80" in sys.argv:
         port = 80
+    elif "--port" in sys.argv:
+        # Handle --port XXXX format
+        try:
+            port_idx = sys.argv.index("--port")
+            if port_idx + 1 < len(sys.argv):
+                port = int(sys.argv[port_idx + 1])
+        except (ValueError, IndexError):
+            port = 5000
 
     # Disable debug mode when running under systemd to prevent restarts
-    debug_mode = (port == 5000) and ('INVOCATION_ID' not in os.environ)
+    debug_mode = (port == 5000) and ("INVOCATION_ID" not in os.environ)
 
     print(f"Starting chicken gate web interface on port {port}...")
-    app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)

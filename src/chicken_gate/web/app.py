@@ -509,15 +509,28 @@ def camera_debug():
         return jsonify({"error": f"Debug failed: {e}"}), 500
 
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for the web interface"""
     # Create templates directory if it doesn't exist
     os.makedirs("templates", exist_ok=True)
     os.makedirs("static", exist_ok=True)
 
-    # Check if we should run on port 5000 (development mode)
+    # Check for port arguments
     import sys
 
-    port = 5000 if "--port5000" in sys.argv else 80
+    port = 5000
+    if "--port5000" in sys.argv:
+        port = 5000
+    elif "--port80" in sys.argv:
+        port = 80
+    elif "--port" in sys.argv:
+        # Handle --port XXXX format
+        try:
+            port_idx = sys.argv.index("--port")
+            if port_idx + 1 < len(sys.argv):
+                port = int(sys.argv[port_idx + 1])
+        except (ValueError, IndexError):
+            port = 5000
 
     print("Starting chicken gate web interface...")
     if port == 80:
@@ -537,5 +550,12 @@ if __name__ == "__main__":
         print(f"  http://YOUR_PI_IP:{port}")
         print(f"  http://localhost:{port} (if running locally)")
 
+    # Disable debug mode when running under systemd to prevent restarts
+    debug_mode = (port == 5000) and ("INVOCATION_ID" not in os.environ)
+
     # Bind to all interfaces for Pi accessibility
-    app.run(host="0.0.0.0", port=port, debug=port == 5000)  # nosec B104
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)  # nosec B104
+
+
+if __name__ == "__main__":
+    main()
