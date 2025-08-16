@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
-from gate import Gate
-from gate_cmd import Cmd
+
+from .gate import Gate
+from .gate_cmd import Cmd
 
 
 class Gate_drv:
