@@ -9,7 +9,7 @@ logger = logging.getLogger("chicken-gate")
 
 
 class Gate:
-    def __init__(self, init_posn=100, open_time=330, close_time=420):
+    def __init__(self, init_posn=100, open_time=310, close_time=420):
         self.__motion_cmd = Cmd.STOP
         self.__closed_switch_pressed = False
         self.__open_switch_pressed = False
