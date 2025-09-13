@@ -56,8 +56,8 @@ def get_email_config():
     )
 
 
-def send_email(msg):
-    """Send email notification"""
+def send_email(body, subject="Chicken Gate Notification"):
+    """Send email notification with subject and body"""
     port = 465  # For SSL
     smtp_server = "smtp.gmail.com"
 
@@ -67,11 +67,14 @@ def send_email(msg):
         print(f"Email configuration error: {e}")
         return False
 
+    # Format the email with headers
+    message = f"Subject: {subject}\n\n{body}"
+
     try:
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
             server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, msg)
+            server.sendmail(sender_email, receiver_email, message)
         return True
     except Exception as e:
         print(f"Failed to send email: {e}")
