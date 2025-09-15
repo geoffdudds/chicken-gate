@@ -91,7 +91,9 @@ class TestEmailConfiguration:
             assert result is True
             mock_server.login.assert_called_once_with("test@test.com", "test_pass")
             mock_server.sendmail.assert_called_once_with(
-                "test@test.com", "recipient@test.com", "Test message"
+                "test@test.com",
+                "recipient@test.com",
+                "Subject: Chicken Gate Notification\n\nTest message",
             )
 
     def test_send_email_config_error(self):
