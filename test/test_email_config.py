@@ -71,8 +71,7 @@ class TestEmailConfiguration:
 
             assert "Invalid secret.toml format" in str(exc_info.value)
 
-    @patch("chicken_gate.gate.email_me.smtplib.SMTP_SSL")
-    def test_send_email_success(self, mock_smtp):
+    def test_send_email_success(self, mocker):
         """Test successful email sending"""
         # Set up environment
         with patch.dict(
@@ -84,6 +83,7 @@ class TestEmailConfiguration:
             },
         ):
             # Mock successful SMTP
+            mock_smtp = mocker.patch("chicken_gate.gate.email_me.smtplib.SMTP_SSL")
             mock_server = mock_smtp.return_value.__enter__.return_value
 
             result = send_email("Test message")
@@ -105,8 +105,7 @@ class TestEmailConfiguration:
             result = send_email("Test message")
             assert result is False
 
-    @patch("chicken_gate.gate.email_me.smtplib.SMTP_SSL")
-    def test_send_email_smtp_error(self, mock_smtp):
+    def test_send_email_smtp_error(self, mocker):
         """Test email sending with SMTP error"""
         # Set up environment
         with patch.dict(
@@ -118,6 +117,7 @@ class TestEmailConfiguration:
             },
         ):
             # Mock SMTP failure
+            mock_smtp = mocker.patch("chicken_gate.gate.email_me.smtplib.SMTP_SSL")
             mock_smtp.side_effect = Exception("SMTP Error")
 
             result = send_email("Test message")
