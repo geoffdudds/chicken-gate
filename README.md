@@ -110,6 +110,19 @@ sudo systemctl restart chicken-gate.service
 date   # should show MST (UTC-7)
 ```
 
+### Hardware Watchdog
+
+The Pi's hardware watchdog reboots it if the system hangs, which also drops the
+relay outputs so a frozen Pi can't leave the motor running. The services
+already restart themselves if they crash, so this only covers full system
+hangs. The Pi Zero's maximum timeout is about 15 s. To enable it on a fresh install:
+
+```bash
+sudo sed -i "s/^#\?RuntimeWatchdogSec=.*/RuntimeWatchdogSec=14/" /etc/systemd/system.conf
+sudo systemctl daemon-reexec   # applies without a reboot
+systemctl show -p RuntimeWatchdogUSec   # should show 14s
+```
+
 ## Running the Services
 
 ### Manual Testing
