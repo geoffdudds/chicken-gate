@@ -360,6 +360,16 @@
         font-size: 0.95em;
       }
 
+      .sun-times .gate-event .tile-value {
+        color: var(--accent);
+      }
+
+      .gate-event-tag {
+        font-size: 0.7em;
+        color: var(--accent);
+        margin-top: 2px;
+      }
+
       /* Diagnostics */
       .diag-header {
         display: flex;
@@ -490,17 +500,19 @@
               <div class="tile-label">Dawn</div>
               <div class="tile-value" id="dawn-time">--</div>
             </div>
-            <div>
+            <div class="gate-event">
               <div class="tile-label">Sunrise</div>
               <div class="tile-value" id="sunrise-time">--</div>
+              <div class="gate-event-tag">opens</div>
             </div>
             <div>
               <div class="tile-label">Sunset</div>
               <div class="tile-value" id="sunset-time">--</div>
             </div>
-            <div>
+            <div class="gate-event">
               <div class="tile-label">Dusk</div>
               <div class="tile-value" id="dusk-time">--</div>
+              <div class="gate-event-tag">closes</div>
             </div>
           </div>
           <div class="tile wide tile-row">
