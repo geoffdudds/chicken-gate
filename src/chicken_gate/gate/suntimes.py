@@ -14,19 +14,3 @@ class SunTimes:
     def get_times(self):
         """Return today's dawn, sunrise, sunset and dusk from a single calculation."""
         return sun(self.__loc_info.observer, tzinfo=tz.gettz())
-
-    def get_dawn(self):
-        loc_times = sun(self.__loc_info.observer, tzinfo=tz.gettz())
-        return loc_times["dawn"]
-
-    def get_dusk(self):
-        loc_times = sun(self.__loc_info.observer, tzinfo=tz.gettz())
-        return loc_times["dusk"]
-
-    def get_sunrise(self):
-        loc_times = sun(self.__loc_info.observer, tzinfo=tz.gettz())
-        return loc_times["sunrise"]
-
-    def get_sunset(self):
-        loc_times = sun(self.__loc_info.observer, tzinfo=tz.gettz())
-        return loc_times["sunset"]

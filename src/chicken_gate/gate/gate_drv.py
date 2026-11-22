@@ -43,14 +43,14 @@ class Gate_drv:
         # Read GPIO pin - HIGH means switch is pressed (opened)
         return GPIO.input(self.CLOSED_SWITCH_PIN) == GPIO.HIGH
 
-    def tick(self):
+    def tick(self, elapsed_time=0.1):
         # set gate inputs - using helper method for clarity
         self.gate.set_closed_switch(self.is_switch_pressed())
         # todo: add when switch is installed
         self.gate.set_open_switch(False)
 
         # tick gate
-        self.gate.tick()
+        self.gate.tick(elapsed_time)
 
         # get gate output
         self.cmd = self.gate.get_cmd()

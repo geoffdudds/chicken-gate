@@ -8,6 +8,7 @@ Usage:
   python send_gate_cmd.py RESET:50
 """
 
+import os
 import sys
 
 
@@ -51,8 +52,10 @@ def send_command(command):
 
     cmd_file = "gate_cmd.txt"
     try:
-        with open(cmd_file, "w") as f:
+        tmp_file = cmd_file + ".tmp"
+        with open(tmp_file, "w") as f:
             f.write(cmd_to_send)
+        os.replace(tmp_file, cmd_file)
         print(f"Command '{cmd_to_send}' sent to gate process")
         return True
     except IOError as e:

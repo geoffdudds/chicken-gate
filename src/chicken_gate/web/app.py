@@ -105,8 +105,10 @@ def send_gate_command(command):
 
         # Write command to file that main.py monitors
         cmd_file = "gate_cmd.txt"
-        with open(cmd_file, "w") as f:
+        tmp_file = cmd_file + ".tmp"
+        with open(tmp_file, "w") as f:
             f.write(command_upper)
+        os.replace(tmp_file, cmd_file)
 
         return True, f"Command '{command_upper}' sent to gate system"
 
@@ -139,8 +141,8 @@ def api_schedule():
 def handle_command():
     """Handle gate commands from the web interface"""
     try:
-        data = request.get_json()
-        command = data.get("command", "").upper()
+        data = request.get_json(silent=True) or {}
+        command = str(data.get("command", "")).upper()
 
         success, message = send_gate_command(command)
 
@@ -172,10 +174,6 @@ def api_clear_diagnostics():
 
 def main():
     """Main entry point for the web interface"""
-    # Create templates directory if it doesn't exist
-    os.makedirs("templates", exist_ok=True)
-    os.makedirs("static", exist_ok=True)
-
     # Check for port arguments
     import sys
 

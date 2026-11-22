@@ -60,7 +60,7 @@ class Gate_drv:
         """Test helper to check relay states"""
         return {"relay1": self._relay1_state, "relay2": self._relay2_state}
 
-    def tick(self):
+    def tick(self, elapsed_time=0.1):
         # Auto-simulate closed switch activation BEFORE calling gate.tick() (unless manually overridden)
         if not hasattr(self, "_manual_switch_override"):
             gate_position = self.gate.get_posn()
@@ -74,7 +74,7 @@ class Gate_drv:
         self.gate.set_open_switch(False)  # Always False since no open switch exists
 
         # Update gate logic
-        self.gate.tick()
+        self.gate.tick(elapsed_time)
 
         # Get command from gate
         self.cmd = self.gate.get_cmd()

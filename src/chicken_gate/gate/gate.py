@@ -1,4 +1,5 @@
 import logging
+import threading
 
 from .email_me import send_email
 from .gate_cmd import Cmd
@@ -114,7 +115,7 @@ class Gate:
                 if self.get_posn() < 90 and self.__closed_switch_pressed:
                     msg: str = "gate position is below 90 but closed switch is pressed"
                     self.__add_diagnostic(f"ERROR: {msg}")
-                    send_email(msg)
+                    self.__notify(msg)
                     self.__add_error(msg)
                     self.__open_disabled = True  # Disable opening
                     self.__motion_cmd = Cmd.STOP  # Stop immediately
@@ -130,7 +131,7 @@ class Gate:
                 if self.__motion_cmd == Cmd.CLOSE and not self.__closed_switch_pressed:
                     msg: str = "gate finished closing but closed switch is not pressed"
                     self.__add_diagnostic(f"ERROR: {msg}")
-                    send_email(msg)
+                    self.__notify(msg)
                     self.__add_error(msg)
 
                 # alert if finished opening but closed switch is still pressed
@@ -139,7 +140,7 @@ class Gate:
                         "gate finished opening but closed switch is still pressed"
                     )
                     self.__add_diagnostic(f"ERROR: {msg}")
-                    send_email(msg)
+                    self.__notify(msg)
                     self.__add_error(msg)
 
             self.__motion_cmd = Cmd.STOP
@@ -175,6 +176,11 @@ class Gate:
         self.__motion_cmd = Cmd.STOP
         self.__add_diagnostic("gate stop command received - manual stop engaged")
 
+    @staticmethod
+    def __notify(msg: str):
+        """Email in the background; SMTP can take seconds and would stall control."""
+        threading.Thread(target=send_email, args=(msg,), daemon=True).start()
+
     def __add_error(self, error_msg: str):
         """Add an error message to the error list"""
         if error_msg not in self.__errors:
@@ -191,8 +197,6 @@ class Gate:
         if len(self.__diagnostic_messages) > 20:
             self.__diagnostic_messages.pop(0)
 
-        # Print to console and log to system journal
-        print(timestamped_msg)
         logger.info(diagnostic_msg)
 
     @staticmethod

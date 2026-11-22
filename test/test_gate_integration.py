@@ -50,6 +50,16 @@ class TestGateDriverIntegration:
         # Should reset to closed position (100)
         assert gate.get_posn() == 100
 
+    def test_position_tracks_actual_elapsed_time(self):
+        """A slow loop pass must advance position by the real time the motor ran"""
+        self.gate.close()
+        self.driver.tick(0)  # Start the motor
+        assert self.driver.cmd == Cmd.CLOSE
+
+        self.driver.tick(2.5)  # One long pass: 2.5 s at 10 %/s
+
+        assert self.gate.get_posn() == pytest.approx(25)
+
     def test_opening_sequence(self):
         """Test complete opening sequence"""
         # Start with gate closed

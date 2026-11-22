@@ -18,7 +18,11 @@ class Schedule:
 
         # create schedule, add job to update dawn / dusk times, and start the scheduler
         self.__suntime = SunTimes()
-        self.__sched = BackgroundScheduler()
+        # APScheduler skips jobs that start more than 1 s late by default, which
+        # a busy Pi Zero can easily miss, leaving the gate unmoved for the day.
+        self.__sched = BackgroundScheduler(
+            job_defaults={"misfire_grace_time": 600, "coalesce": True}
+        )
         self.__update_sched_job = self.__sched.add_job(
             func=self.__update_schedule,
             trigger="cron",
