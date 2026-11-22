@@ -58,7 +58,7 @@ def send_command(command):
         os.replace(tmp_file, cmd_file)
         print(f"Command '{cmd_to_send}' sent to gate process")
         return True
-    except IOError as e:
+    except OSError as e:
         print(f"Error writing command file: {e}")
         return False
 
