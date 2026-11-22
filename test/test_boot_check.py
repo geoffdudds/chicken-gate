@@ -53,7 +53,7 @@ def test_log_summary_includes_only_entries_before_this_boot(tmp_path):
     syslog = tmp_path / "syslog"
     syslog.write_text(
         "Nov 21 21:00:00 raspberrypi chicken-gate-main[10]: Started chicken gate\n"
-        "Nov 21 21:59:50 raspberrypi chicken-gate-main[10]: last old-boot event\n"
+        "Nov 21 21:59:50 raspberrypi chicken-gate-main[10]: last old-boot event\x00\n"
         "Nov 22 00:00:00 raspberrypi rsyslogd: [origin software=rsyslogd] start\n"
         "Nov 22 00:00:10 raspberrypi chicken-gate-main[20]: current-boot event\n"
     )
@@ -62,6 +62,7 @@ def test_log_summary_includes_only_entries_before_this_boot(tmp_path):
 
     assert "last old-boot event" in summary
     assert "current-boot event" not in summary
+    assert "\x00" not in summary
 
 
 def test_log_summary_combines_rotated_and_current_logs_in_order(tmp_path):

@@ -100,7 +100,10 @@ def get_previous_boot_log_summary(log_files=None):
         previous_boot_lines = log_lines[start:boot_marker]
         if previous_boot_lines:
             return "\n".join(
-                line[:MAX_LOG_LINE_LENGTH]
+                "".join(
+                    char if char.isprintable() or char == "\t" else " "
+                    for char in line
+                )[:MAX_LOG_LINE_LENGTH]
                 for line in previous_boot_lines[-MAX_LOG_LINES:]
             )
     if read_errors:
