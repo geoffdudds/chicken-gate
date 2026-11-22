@@ -6,6 +6,7 @@ import sys
 import time
 from datetime import datetime
 
+from ..shared import settings as user_settings
 from ..shared.config import get_status_file_path
 from . import boot_check
 from .gate import Gate
@@ -65,9 +66,10 @@ STATUS_WRITE_PERIOD = 1.0  # seconds; the web page polls every 2 s
 
 
 def main():
-    gate = Gate()
+    settings = user_settings.load()
+    gate = Gate(open_time=settings["open_travel_s"])
     gate_drv = Gate_drv(gate)
-    schedule = Schedule()
+    schedule = Schedule(settings)
 
     if boot_check.check_for_unexpected_restart():
         print("Pi restarted without a clean shutdown (watchdog or power loss)")
@@ -118,6 +120,11 @@ def main():
             elif gate_cmd == "CLEAR_ERRORS":
                 print("shell cmd to clear errors")
                 gate_drv.gate.clear_errors()
+            elif gate_cmd == "RELOAD_SETTINGS":
+                print("cmd to reload settings")
+                settings = user_settings.load()
+                gate_drv.gate.set_open_time(settings["open_travel_s"])
+                schedule.apply_settings(settings, catch_up=schedule_enabled)
             elif gate_cmd == "CLEAR_DIAGNOSTICS":
                 print("shell cmd to clear diagnostics")
                 gate_drv.gate.clear_diagnostic_messages()

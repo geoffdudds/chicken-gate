@@ -26,6 +26,10 @@ class Gate:
     def get_cmd(self) -> Cmd:
         return self.__motion_cmd
 
+    def set_open_time(self, open_time):
+        """Set the full-travel opening time (s); the gate counts as open after it."""
+        self.__open_rate = 100 / open_time
+
     def get_posn(self):
         return self.__posn
 

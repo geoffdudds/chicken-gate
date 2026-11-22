@@ -6,7 +6,8 @@ An automated chicken gate control system for Raspberry Pi with web interface.
 
 ## Features
 
-- Automatic sunrise/sunset scheduling using astronomical calculations
+- Automatic sunrise/sunset scheduling using astronomical calculations, with
+  adjustable offsets and opening run time on the web Settings page
 - Manual gate control via web interface
 - RESTful API for external control
 - Email notifications for gate events
@@ -214,6 +215,8 @@ The first page load after a service restart can take ~10 s on the Pi Zero.
 ## API Endpoints
 
 - `GET /api/status` - Get current gate status
+- `GET /api/settings` / `POST /api/settings` - Read or save settings (open/close
+  event and offset, opening run time); the gate applies them without a restart
 - `POST /api/open` - Open the gate
 - `POST /api/close` - Close the gate
 - `POST /api/auto` - Enable automatic mode

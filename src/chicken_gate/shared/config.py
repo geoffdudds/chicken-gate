@@ -7,6 +7,7 @@ from pathlib import Path
 # File paths for communication between processes
 STATUS_FILE = "chicken-gate-status.json"
 COMMAND_FILE = "gate_cmd.txt"
+SETTINGS_FILE = "settings.json"
 
 # The status file is rewritten every second; keep it in RAM (tmpfs) when
 # available so it doesn't wear out the Pi's SD card.
@@ -43,6 +44,11 @@ def get_boot_flag_path():
 def get_clean_shutdown_path():
     """Get the path of the marker written when the gate process stops cleanly."""
     return PROJECT_ROOT / CLEAN_SHUTDOWN_FILE
+
+
+def get_settings_path():
+    """Get the path of the user settings file (see shared/settings.py)."""
+    return PROJECT_ROOT / SETTINGS_FILE
 
 
 def get_command_file_path():

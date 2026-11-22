@@ -30,3 +30,5 @@ __pycache__/
 Thumbs.db
 # Restart detection marker (written on clean shutdown)
 .clean_shutdown
+# User settings saved from the web UI
+settings.json

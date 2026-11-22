@@ -1,13 +1,18 @@
 import subprocess  # nosec B404
+import threading
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from ..shared import settings as user_settings
 from .gate_cmd import Cmd
 from .suntimes import SunTimes
 
 
 class Schedule:
-    def __init__(self):
+    def __init__(self, settings=None):
+        self.__settings = dict(settings or user_settings.DEFAULTS)
+        self.__lock = threading.Lock()
         self.__open_time = None
         self.__close_time = None
         self.__lift_job = None
@@ -46,11 +51,18 @@ class Schedule:
         tick, and recomputing them each time saturates the Pi Zero's CPU.
         """
         sun_times = self.__sun_times
+        settings = self.__settings
         return {
             "dawn": sun_times["dawn"].isoformat(),
             "dusk": sun_times["dusk"].isoformat(),
             "sunrise": sun_times["sunrise"].isoformat(),
             "sunset": sun_times["sunset"].isoformat(),
+            "gate_open": self.__open_time.isoformat() if self.__open_time else None,
+            "gate_close": self.__close_time.isoformat() if self.__close_time else None,
+            "open_event": settings["open_event"],
+            "open_offset_min": settings["open_offset_min"],
+            "close_event": settings["close_event"],
+            "close_offset_min": settings["close_offset_min"],
             "gate_open_time": self.__open_time.strftime("%H:%M")
             if self.__open_time
             else "Unknown",
@@ -59,6 +71,34 @@ class Schedule:
             else "Unknown",
             "next_update": "00:00 (midnight)",
         }
+
+    def apply_settings(self, settings, catch_up=True):
+        """Reschedule today's open and close jobs for new event/offset settings.
+
+        A cron job whose time has already passed won't run until tomorrow, so if
+        the change moves an event that hasn't happened yet to a time that has,
+        run it now (when ``catch_up`` is set) rather than skip it for the day.
+        """
+        with self.__lock:
+            old_open, old_close = self.__open_time, self.__close_time
+            self.__settings = dict(settings)
+            self.__set_open_and_close_times()
+            self.__schedule_close()
+            self.__schedule_open()
+            new_open, new_close = self.__open_time, self.__close_time
+
+        self.__add_to_log(
+            f"Schedule updated: open {new_open:%H:%M}, close {new_close:%H:%M}"
+        )
+        if not catch_up:
+            return
+        now = datetime.now(new_close.tzinfo)
+        if new_close <= now < old_close:
+            self.__add_to_log("New close time has passed; closing now")
+            self.gate_cmd = Cmd.CLOSE
+        elif new_open <= now < old_open and now < new_close:
+            self.__add_to_log("New open time has passed; opening now")
+            self.gate_cmd = Cmd.OPEN
 
     def __add_to_log(self, entry):
         print(entry)
@@ -78,16 +118,34 @@ class Schedule:
             print("systemctl not found - not running on systemd system")
 
     def __update_schedule(self):
-        self.__update_open_and_close_times()
-        self.__schedule_close()
-        self.__schedule_open()
+        with self.__lock:
+            self.__sun_times = self.__suntime.get_times()
+            self.__set_open_and_close_times()
+            self.__schedule_close()
+            self.__schedule_open()
 
         self.__sched.print_jobs()
 
-    def __update_open_and_close_times(self):
-        self.__sun_times = self.__suntime.get_times()
-        self.__open_time = self.__sun_times["sunrise"]
-        self.__close_time = self.__sun_times["dusk"]
+    def __set_open_and_close_times(self):
+        """Derive today's gate times from the cached sun times and settings.
+
+        Seconds are dropped because the cron jobs fire on the minute.
+        """
+        settings = self.__settings
+        self.__open_time = self.__event_time(
+            settings["open_event"], settings["open_offset_min"]
+        )
+        self.__close_time = self.__event_time(
+            settings["close_event"], settings["close_offset_min"]
+        )
+
+    def __event_time(self, event, offset_min):
+        """Offset a sun event, kept within its own day so the daily jobs line up."""
+        base = self.__sun_times[event]
+        day_start = base.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = base.replace(hour=23, minute=59, second=0, microsecond=0)
+        time = (base + timedelta(minutes=offset_min)).replace(second=0, microsecond=0)
+        return min(max(time, day_start), day_end)
 
     def __close(self):
         self.__add_to_log("Executing scheduled close job...")

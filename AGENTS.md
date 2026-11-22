@@ -6,9 +6,9 @@ anything, and see [README.md](README.md) for setup and usage.
 ## What this is
 
 An automatic chicken-coop gate. A Raspberry Pi Zero drives a motor through two
-relays. The motor winds a rope that pulls the gate closed. The gate opens at
-sunrise and closes at dusk, and you can control it from a small web app on your
-phone.
+relays. The motor winds a rope that pulls the gate closed. By default the
+gate opens at sunrise and closes at dusk (both adjustable in Settings), and you
+can control it from a small web app on your phone.
 
 Two systemd services run on the Pi, and they share files rather than talking
 over a socket:
@@ -16,7 +16,7 @@ over a socket:
 | Service | Runs | Role |
 | --- | --- | --- |
 | `chicken-gate.service` | `scripts/chicken-gate-main` as root | Control loop (`src/chicken_gate/gate/main.py`). Ticks about every 0.1 s, drives the GPIO pins, and runs the APScheduler sun schedule. |
-| `chicken-gate-web.service` | `chicken-gate-web --port 5000` as `pi` | Flask app (`src/chicken_gate/web/`) with a single-page UI in `templates/index.html`. |
+| `chicken-gate-web.service` | `chicken-gate-web --port 5000` as `pi` | Flask app (`src/chicken_gate/web/`). Templates extend `templates/base.html`: `index.html` (main page) and `settings.html`. |
 
 How the two services communicate (paths are set in `src/chicken_gate/shared/config.py`):
 
@@ -24,6 +24,9 @@ How the two services communicate (paths are set in `src/chicken_gate/shared/conf
   second, plus immediately after a command. The web app reads it.
 - **Commands:** the web app writes `gate_cmd.txt` in the repo root atomically.
   The gate claims it by renaming it to `.processing`, then reads it.
+- **Settings:** the settings page saves `settings.json` in the repo root
+  (git-ignored; validated by `shared/settings.py`). It then sends a
+  `RELOAD_SETTINGS` command, so the gate applies the change without a restart.
 
 ## Working on the Pi
 
@@ -126,7 +129,8 @@ moving loses the move. Check `/api/status` first, and only restart when
   - **There is no open switch.** Opening is purely timed.
 - **Position:** 0 = fully open, 100 = fully closed. With no open switch, the
   position comes from dead reckoning on measured elapsed time (`Gate.tick`).
-  Full travel takes about 280 s to open and 420 s to close. Always pass the real
+  Full travel takes about 280 s to open (the "opening run time" setting) and
+  420 s to close. Always pass the real
   elapsed time to `tick()`. An earlier fixed 0.1 s/tick assumption made the
   gate open 20–30% too far when the loop ran slow.
 - **The extra 10% after the closed switch is intentional.** The rope has a
@@ -141,9 +145,12 @@ moving loses the move. Check `/api/status` first, and only restart when
   relays LOW and writes `.clean_shutdown`. On the first start after a boot, a
   missing marker means the Pi reset uncleanly (watchdog or power loss), and the
   gate emails the user (`gate/boot_check.py`).
-- **Schedule:** `gate/schedule.py` opens at sunrise and closes at dusk. The web
-  UI labels these two times "opens"/"closes" in the sun-times tile, so update
-  `templates/index.html` if you change which sun events are used.
+- **Schedule:** `gate/schedule.py` opens at dawn or sunrise and closes at sunset
+  or dusk, each plus an offset of ±120 min (defaults: sunrise and dusk, no
+  offset). Gate times are kept within their own day. If a settings change moves
+  today's event to a time that has already passed while the old time is still
+  ahead, the event runs immediately. The main page's Morning/Evening timelines
+  slot "Opens"/"Closes" in among the sun events.
 - **Email secrets:** stored in `secret.toml`, which is git-ignored. The template
   is `src/chicken_gate/shared/secret.toml.template`. Never commit secrets.
 
@@ -170,6 +177,7 @@ uv run --no-project -q --with pytest --with pytest-mock --with astral \
 - The page is for a phone. The gate controls are at the top, and the rest is a
   compact 2-column tile grid.
 - There is no camera.
+- The gear icon in the header opens `/settings`.
 - The theme button cycles Auto → Light → Dark. Auto follows the OS setting
   live. Colours are CSS variables in `:root` and `[data-theme="dark"]`.
 - The owner prefers a clean, uncluttered look, so keep additions subtle.

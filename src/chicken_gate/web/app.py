@@ -11,6 +11,7 @@ from datetime import datetime
 
 from flask import Flask, jsonify, render_template, request
 
+from ..shared import settings as user_settings
 from ..shared.config import get_status_file_path
 
 app = Flask(__name__)
@@ -104,6 +105,7 @@ def send_gate_command(command):
             "CLEAR_DIAGNOSTICS",
             "ENABLE_SCHEDULE",
             "DISABLE_SCHEDULE",
+            "RELOAD_SETTINGS",
         ]
 
         if command_upper.startswith("RESET:"):
@@ -136,6 +138,39 @@ def send_gate_command(command):
 def index():
     """Main page with gate control interface"""
     return render_template("index.html")
+
+
+@app.route("/settings")
+def settings_page():
+    """Settings page for open travel time and schedule offsets"""
+    return render_template(
+        "settings.html",
+        defaults=user_settings.DEFAULTS,
+        open_travel_range=user_settings.OPEN_TRAVEL_RANGE,
+        offset_range=user_settings.OFFSET_RANGE,
+    )
+
+
+@app.route("/api/settings", methods=["GET"])
+def api_get_settings():
+    """API endpoint to get the saved settings"""
+    return jsonify(user_settings.load())
+
+
+@app.route("/api/settings", methods=["POST"])
+def api_save_settings():
+    """Validate and save settings, then tell the gate to reload them"""
+    try:
+        saved = user_settings.save(request.get_json(silent=True))
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+    except OSError as e:
+        return jsonify({"success": False, "message": f"Failed to save: {e}"}), 500
+
+    success, message = send_gate_command("RELOAD_SETTINGS")
+    if not success:
+        return jsonify({"success": False, "message": message}), 500
+    return jsonify({"success": True, "message": "Settings saved", "settings": saved})
 
 
 @app.route("/api/status")

@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Settings · Chicken Gate{% endblock %}
+
+{% block styles %}
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .back-link .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #settings-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .field + .field {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+      }
+
+      .field-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .field-hint {
+        font-size: 0.8em;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .preview {
+        font-size: 0.85em;
+        color: var(--accent);
+        font-weight: 600;
+        margin-top: 6px;
+      }
+
+      select,
+      input[type="number"] {
+        font: inherit;
+        color: var(--text);
+        background: var(--tile);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 7px 8px;
+        height: 36px;
+      }
+
+      input[type="number"] {
+        width: 70px;
+        text-align: center;
+      }
+
+      .unit {
+        color: var(--muted);
+        font-size: 0.9em;
+      }
+
+      .step-btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        font-size: 1.1em;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .btn-save {
+        background: var(--accent);
+        padding: 12px 28px;
+      }
+{% endblock %}
+
+{% block content %}
+      <div class="header">
+        <a class="back-link" href="/" aria-label="Back to gate">
+          <span class="icon-btn">‹</span>
+          <h1>Settings</h1>
+        </a>
+      </div>
+
+      <form id="settings-form" novalidate>
+        <div class="card">
+          <h2>Schedule</h2>
+          <div class="field">
+            <div class="field-label">Open</div>
+            <div class="field-row">
+              <button type="button" class="btn btn-small step-btn" data-step="open_offset_min:-5" aria-label="5 minutes earlier">−</button>
+              <input type="number" id="open_offset_min" step="1"
+                     min="{{ offset_range[0] }}" max="{{ offset_range[1] }}" aria-label="Open offset in minutes" />
+              <button type="button" class="btn btn-small step-btn" data-step="open_offset_min:5" aria-label="5 minutes later">+</button>
+              <span class="unit">min from</span>
+              <select id="open_event" aria-label="Open relative to">
+                <option value="dawn">dawn</option>
+                <option value="sunrise">sunrise</option>
+              </select>
+            </div>
+            <div class="preview" id="open-preview"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Close</div>
+            <div class="field-row">
+              <button type="button" class="btn btn-small step-btn" data-step="close_offset_min:-5" aria-label="5 minutes earlier">−</button>
+              <input type="number" id="close_offset_min" step="1"
+                     min="{{ offset_range[0] }}" max="{{ offset_range[1] }}" aria-label="Close offset in minutes" />
+              <button type="button" class="btn btn-small step-btn" data-step="close_offset_min:5" aria-label="5 minutes later">+</button>
+              <span class="unit">min from</span>
+              <select id="close_event" aria-label="Close relative to">
+                <option value="sunset">sunset</option>
+                <option value="dusk">dusk</option>
+              </select>
+            </div>
+            <div class="preview" id="close-preview"></div>
+          </div>
+          <div class="field-hint">
+            Negative is earlier, positive is later ({{ offset_range[0] }} to
+            +{{ offset_range[1] }} min).
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Gate travel</h2>
+          <div class="field">
+            <div class="field-label">Opening run time</div>
+            <div class="field-row">
+              <button type="button" class="btn btn-small step-btn" data-step="open_travel_s:-10" aria-label="10 seconds less">−</button>
+              <input type="number" id="open_travel_s" step="1"
+                     min="{{ open_travel_range[0] }}" max="{{ open_travel_range[1] }}" aria-label="Opening run time in seconds" />
+              <button type="button" class="btn btn-small step-btn" data-step="open_travel_s:10" aria-label="10 seconds more">+</button>
+              <span class="unit">s</span>
+              <span class="unit" id="open-travel-mins"></span>
+            </div>
+            <div class="field-hint">
+              How long the motor lowers the gate, from closed, before it counts
+              as fully open. Default {{ defaults.open_travel_s }} s.
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-small" id="defaultsBtn">Restore defaults</button>
+          <button type="submit" class="btn btn-save" id="saveBtn">Save</button>
+        </div>
+      </form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+      const DEFAULTS = {{ defaults | tojson }};
+      const FIELDS = Object.keys(DEFAULTS);
+      let sunTimes = {};
+
+      function readForm() {
+        const values = {};
+        for (const key of FIELDS) {
+          const el = $(key);
+          values[key] = el.type === "number" ? Number(el.value) : el.value;
+        }
+        return values;
+      }
+
+      function fillForm(values) {
+        for (const key of FIELDS) $(key).value = values[key];
+        updatePreview();
+      }
+
+      function describeOffset(minutes, event) {
+        if (!minutes) return `at ${event}`;
+        return `${Math.abs(minutes)} min ${minutes < 0 ? "before" : "after"} ${event}`;
+      }
+
+      function previewTime(event, minutes) {
+        if (!sunTimes[event] || !Number.isInteger(minutes)) return "";
+        const d = new Date(sunTimes[event]);
+        d.setMinutes(d.getMinutes() + minutes, 0, 0);
+        return `Today ${formatTime(d)} · `;
+      }
+
+      function updatePreview() {
+        const v = readForm();
+        setText(
+          "open-preview",
+          previewTime(v.open_event, v.open_offset_min) +
+            describeOffset(v.open_offset_min, v.open_event)
+        );
+        setText(
+          "close-preview",
+          previewTime(v.close_event, v.close_offset_min) +
+            describeOffset(v.close_offset_min, v.close_event)
+        );
+        const s = v.open_travel_s;
+        setText(
+          "open-travel-mins",
+          Number.isInteger(s) && s > 0
+            ? `(${Math.floor(s / 60)} min ${s % 60} s)`
+            : ""
+        );
+      }
+
+      document.querySelectorAll("[data-step]").forEach((btn) => {
+        btn.onclick = () => {
+          const [key, step] = btn.dataset.step.split(":");
+          const input = $(key);
+          const next = (Number(input.value) || 0) + Number(step);
+          input.value = Math.min(Number(input.max), Math.max(Number(input.min), next));
+          updatePreview();
+        };
+      });
+
+      $("settings-form").addEventListener("input", updatePreview);
+      $("settings-form").addEventListener("change", updatePreview);
+
+      $("defaultsBtn").onclick = () => fillForm(DEFAULTS);
+
+      $("settings-form").onsubmit = async (e) => {
+        e.preventDefault();
+        $("saveBtn").disabled = true;
+        try {
+          const data = await post("/api/settings", readForm());
+          fillForm(data.settings);
+          showToast(data.message, "success");
+        } catch (error) {
+          showToast(error.message, "error");
+        } finally {
+          $("saveBtn").disabled = false;
+        }
+      };
+
+      async function load() {
+        try {
+          const [settings, status] = await Promise.all([
+            fetch("/api/settings").then((r) => r.json()),
+            fetch("/api/status").then((r) => r.json()),
+          ]);
+          sunTimes = status.schedule || {};
+          fillForm(settings);
+        } catch (error) {
+          showToast("Failed to load settings", "error");
+        }
+      }
+
+      load();
+    </script>
+{% endblock %}

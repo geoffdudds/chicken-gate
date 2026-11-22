@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{% block title %}Chicken Gate{% endblock %}</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong theme.
+      (function () {
+        const saved = localStorage.getItem("theme");
+        const preference = ["auto", "light", "dark"].includes(saved)
+          ? saved
+          : "auto";
+        const dark =
+          preference === "auto"
+            ? window.matchMedia("(prefers-color-scheme: dark)").matches
+            : preference === "dark";
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+    <style>
+      :root {
+        --bg: #eef0f6;
+        --card: #ffffff;
+        --tile: #f6f7fb;
+        --border: #e1e4ec;
+        --text: #1f2430;
+        --muted: #6b7280;
+        --accent: #6a5acd;
+        --ok: #1e9e57;
+        --warn: #d98200;
+        --bad: #d93a3a;
+        --info: #2f7bd8;
+        --bar-bg: #e3e6ee;
+        --log-bg: #f6f7fb;
+      }
+
+      [data-theme="dark"] {
+        --bg: #12141a;
+        --card: #1c1f27;
+        --tile: #252933;
+        --border: #313644;
+        --text: #e7e9ee;
+        --muted: #9aa1ae;
+        --accent: #9d8fff;
+        --ok: #3ecf7f;
+        --warn: #f2a93b;
+        --bad: #ff6b6b;
+        --info: #5aa2ff;
+        --bar-bg: #313644;
+        --log-bg: #171a21;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 12px;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .container {
+        max-width: 640px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .header h1 {
+        font-size: 1.35em;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .pill {
+        font-size: 0.75em;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--tile);
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+
+      .pill.ok {
+        color: var(--ok);
+      }
+      .pill.bad {
+        color: var(--bad);
+      }
+      .pill.warn {
+        color: var(--warn);
+      }
+
+      .icon-btn {
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 10px;
+        width: 36px;
+        height: 36px;
+        font-size: 1.1em;
+        cursor: pointer;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .card h2 {
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+
+      /* Controls */
+      .position-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 6px;
+      }
+
+      .position-value {
+        font-size: 1.6em;
+        font-weight: 700;
+      }
+
+      .state {
+        font-weight: 700;
+        font-size: 0.9em;
+        color: var(--muted);
+      }
+      .state.opening {
+        color: var(--ok);
+      }
+      .state.closing {
+        color: var(--bad);
+      }
+
+      .position-bar {
+        height: 8px;
+        background: var(--bar-bg);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 12px;
+      }
+
+      .position-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--ok);
+        transition: width 0.4s ease;
+      }
+
+      .control-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 14px 8px;
+        font-size: 1em;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        transition: filter 0.15s, transform 0.05s;
+      }
+
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn:hover {
+        filter: brightness(1.08);
+      }
+      .btn-open {
+        background: var(--ok);
+      }
+      .btn-close {
+        background: var(--bad);
+      }
+      .btn-stop {
+        background: var(--warn);
+      }
+
+      .btn-small {
+        padding: 7px 12px;
+        font-size: 0.85em;
+        background: var(--tile);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .controls-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+        gap: 8px;
+      }
+
+      .switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 0.95em;
+      }
+
+      .switch input {
+        display: none;
+      }
+
+      .switch .track {
+        width: 44px;
+        height: 26px;
+        border-radius: 13px;
+        background: var(--bar-bg);
+        position: relative;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+
+      .switch .track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        transition: left 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .switch input:checked + .track {
+        background: var(--ok);
+      }
+
+      .switch input:checked + .track::after {
+        left: 21px;
+      }
+
+      /* Errors */
+      .errors {
+        border-color: var(--bad);
+        display: none;
+      }
+
+      .errors h2 {
+        color: var(--bad);
+      }
+
+      .error-item {
+        font-size: 0.9em;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .errors .btn-small {
+        margin-top: 10px;
+      }
+
+      /* Tiles */
+      .tiles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .tile {
+        background: var(--tile);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+
+      .tile.wide {
+        grid-column: span 2;
+      }
+
+      .tile-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tile-row .tile-label {
+        margin-bottom: 0;
+      }
+
+      .tile-label {
+        font-size: 0.75em;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+
+      .tile-value {
+        font-size: 1.15em;
+        font-weight: 700;
+      }
+
+      .tile-sub {
+        font-size: 0.75em;
+        color: var(--muted);
+      }
+
+      .ok {
+        color: var(--ok);
+      }
+      .bad {
+        color: var(--bad);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      .info {
+        color: var(--info);
+      }
+
+      /* Diagnostics */
+      .diag-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .diag-header h2 {
+        margin-bottom: 0;
+      }
+
+      .diagnostics-log {
+        background: var(--log-bg);
+        border-radius: 8px;
+        padding: 8px 10px;
+        max-height: 220px;
+        overflow-y: auto;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.8em;
+      }
+
+      .log-entry {
+        padding: 3px 0;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      .log-entry.error {
+        color: var(--bad);
+      }
+
+      .last-updated {
+        text-align: center;
+        font-size: 0.75em;
+        color: var(--muted);
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        max-width: 90vw;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 0.9em;
+        color: #fff;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        display: none;
+        z-index: 10;
+      }
+
+      .toast.success {
+        background: var(--ok);
+      }
+      .toast.error {
+        background: var(--bad);
+      }
+
+      a.icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+      }
+
+      .icon-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+    </style>
+    <style>
+{% block styles %}{% endblock %}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+{% block content %}{% endblock %}
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      let toastTimer;
+
+      const $ = (id) => document.getElementById(id);
+      const timeFmt = { hour: "numeric", minute: "2-digit" };
+
+      function setText(id, text, className) {
+        const el = $(id);
+        el.textContent = text;
+        if (className !== undefined) el.className = className;
+      }
+
+      function formatTime(date) {
+        return date ? date.toLocaleTimeString([], timeFmt) : "--";
+      }
+
+      function formatIso(iso) {
+        return iso ? formatTime(new Date(iso)) : "--";
+      }
+
+      async function post(url, body) {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Request failed");
+        }
+        return data;
+      }
+
+      function showToast(message, type) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.className = "toast " + type;
+        toast.style.display = "block";
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (toast.style.display = "none"), 3000);
+      }
+
+      const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+      const themePreferences = ["auto", "light", "dark"];
+      let themePreference =
+        document.documentElement.dataset.themePreference || "auto";
+
+      function applyTheme(preference) {
+        themePreference = preference;
+        const theme =
+          preference === "auto"
+            ? colorScheme.matches
+              ? "dark"
+              : "light"
+            : preference;
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.dataset.theme = theme;
+
+        const button = $("themeBtn");
+        if (!button) return;
+        const nextPreference =
+          themePreferences[
+            (themePreferences.indexOf(preference) + 1) % themePreferences.length
+          ];
+        button.textContent =
+          preference === "auto" ? "A" : preference === "dark" ? "☀️" : "🌙";
+        button.title = `Theme: ${preference[0].toUpperCase()}${preference.slice(1)} (click for ${nextPreference})`;
+        button.setAttribute(
+          "aria-label",
+          `Theme: ${preference}. Click to switch to ${nextPreference}.`,
+        );
+      }
+
+      if ($("themeBtn")) {
+        $("themeBtn").onclick = () => {
+          const next =
+            themePreferences[
+              (themePreferences.indexOf(themePreference) + 1) %
+                themePreferences.length
+            ];
+          localStorage.setItem("theme", next);
+          applyTheme(next);
+        };
+      }
+      colorScheme.addEventListener("change", () => {
+        if (themePreference === "auto") applyTheme("auto");
+      });
+      applyTheme(themePreference);
+    </script>
+{% block scripts %}{% endblock %}
+  </body>
+</html>

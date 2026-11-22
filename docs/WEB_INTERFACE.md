@@ -17,6 +17,13 @@ A modern web interface to monitor and control your automated chicken gate system
 - Reset position
 - Command feedback and status messages
 
+⚙️ **Settings** (gear icon)
+
+- Open time: minutes before/after dawn or sunrise
+- Close time: minutes before/after sunset or dusk
+- Opening run time: how long the motor runs before the gate counts as fully open
+- Changes apply immediately, without restarting the gate service
+
 📱 **Responsive Design**
 
 - Compact two-column layout that fits on one phone screen

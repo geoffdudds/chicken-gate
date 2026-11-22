@@ -1,443 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark" />
-    <title>Chicken Gate</title>
-    <script>
-      // Apply the saved theme before first paint to avoid a flash of the wrong theme.
-      (function () {
-        const saved = localStorage.getItem("theme");
-        const preference = ["auto", "light", "dark"].includes(saved)
-          ? saved
-          : "auto";
-        const dark =
-          preference === "auto"
-            ? window.matchMedia("(prefers-color-scheme: dark)").matches
-            : preference === "dark";
-        document.documentElement.dataset.themePreference = preference;
-        document.documentElement.dataset.theme = dark ? "dark" : "light";
-      })();
-    </script>
-    <style>
-      :root {
-        --bg: #eef0f6;
-        --card: #ffffff;
-        --tile: #f6f7fb;
-        --border: #e1e4ec;
-        --text: #1f2430;
-        --muted: #6b7280;
-        --accent: #6a5acd;
-        --ok: #1e9e57;
-        --warn: #d98200;
-        --bad: #d93a3a;
-        --info: #2f7bd8;
-        --bar-bg: #e3e6ee;
-        --log-bg: #f6f7fb;
+{% extends "base.html" %}
+
+{% block styles %}
+      .timeline {
+        list-style: none;
+        position: relative;
+        margin-top: 6px;
       }
 
-      [data-theme="dark"] {
-        --bg: #12141a;
-        --card: #1c1f27;
-        --tile: #252933;
-        --border: #313644;
-        --text: #e7e9ee;
-        --muted: #9aa1ae;
-        --accent: #9d8fff;
-        --ok: #3ecf7f;
-        --warn: #f2a93b;
-        --bad: #ff6b6b;
-        --info: #5aa2ff;
-        --bar-bg: #313644;
-        --log-bg: #171a21;
+      /* The line joining the dots */
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        background: var(--border);
       }
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        padding: 12px;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .container {
-        max-width: 640px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-      }
-
-      .header h1 {
-        font-size: 1.35em;
-      }
-
-      .header-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .pill {
-        font-size: 0.75em;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: var(--tile);
-        border: 1px solid var(--border);
-        color: var(--muted);
-      }
-
-      .pill.ok {
-        color: var(--ok);
-      }
-      .pill.bad {
-        color: var(--bad);
-      }
-      .pill.warn {
-        color: var(--warn);
-      }
-
-      .icon-btn {
-        background: var(--card);
-        border: 1px solid var(--border);
-        color: var(--text);
-        border-radius: 10px;
-        width: 36px;
-        height: 36px;
-        font-size: 1.1em;
-        cursor: pointer;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 14px;
-      }
-
-      .card h2 {
-        font-size: 0.8em;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--muted);
-        margin-bottom: 10px;
-      }
-
-      /* Controls */
-      .position-row {
+      .timeline li {
+        position: relative;
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        margin-bottom: 6px;
-      }
-
-      .position-value {
-        font-size: 1.6em;
-        font-weight: 700;
-      }
-
-      .state {
-        font-weight: 700;
-        font-size: 0.9em;
+        gap: 6px;
+        padding: 3px 0 3px 18px;
+        font-size: 0.85em;
         color: var(--muted);
       }
-      .state.opening {
-        color: var(--ok);
-      }
-      .state.closing {
-        color: var(--bad);
-      }
 
-      .position-bar {
-        height: 8px;
-        background: var(--bar-bg);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 12px;
-      }
-
-      .position-fill {
-        height: 100%;
-        width: 0%;
-        background: var(--ok);
-        transition: width 0.4s ease;
-      }
-
-      .control-buttons {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-      }
-
-      .btn {
-        border: none;
-        border-radius: 10px;
-        padding: 14px 8px;
-        font-size: 1em;
-        font-weight: 600;
-        color: #fff;
-        cursor: pointer;
-        transition: filter 0.15s, transform 0.05s;
-      }
-
-      .btn:active {
-        transform: scale(0.97);
-      }
-      .btn:hover {
-        filter: brightness(1.08);
-      }
-      .btn-open {
-        background: var(--ok);
-      }
-      .btn-close {
-        background: var(--bad);
-      }
-      .btn-stop {
-        background: var(--warn);
-      }
-
-      .btn-small {
-        padding: 7px 12px;
-        font-size: 0.85em;
-        background: var(--tile);
-        color: var(--text);
-        border: 1px solid var(--border);
-      }
-
-      .controls-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 12px;
-        gap: 8px;
-      }
-
-      .switch {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        user-select: none;
-        font-size: 0.95em;
-      }
-
-      .switch input {
-        display: none;
-      }
-
-      .switch .track {
-        width: 44px;
-        height: 26px;
-        border-radius: 13px;
-        background: var(--bar-bg);
-        position: relative;
-        transition: background 0.2s;
-        flex-shrink: 0;
-      }
-
-      .switch .track::after {
+      .timeline li::before {
         content: "";
         position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 20px;
-        height: 20px;
+        left: 0;
+        top: 50%;
+        width: 6px;
+        height: 6px;
+        margin-top: -5px;
         border-radius: 50%;
-        background: #fff;
-        transition: left 0.2s;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-      }
-
-      .switch input:checked + .track {
-        background: var(--ok);
-      }
-
-      .switch input:checked + .track::after {
-        left: 21px;
-      }
-
-      /* Errors */
-      .errors {
-        border-color: var(--bad);
-        display: none;
-      }
-
-      .errors h2 {
-        color: var(--bad);
-      }
-
-      .error-item {
-        font-size: 0.9em;
-        padding: 6px 0;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .errors .btn-small {
-        margin-top: 10px;
-      }
-
-      /* Tiles */
-      .tiles {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      .tile {
         background: var(--tile);
-        border-radius: 10px;
-        padding: 10px 12px;
+        border: 2px solid var(--muted);
       }
 
-      .tile.wide {
-        grid-column: span 2;
+      .timeline .time {
+        color: var(--text);
+        font-weight: 600;
       }
 
-      .tile-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .tile-row .tile-label {
-        margin-bottom: 0;
-      }
-
-      .tile-label {
-        font-size: 0.75em;
-        color: var(--muted);
-        margin-bottom: 2px;
-      }
-
-      .tile-value {
-        font-size: 1.15em;
+      .timeline li.gate-event {
+        color: var(--accent);
+        font-size: 1em;
         font-weight: 700;
       }
 
-      .tile-sub {
-        font-size: 0.75em;
-        color: var(--muted);
-      }
-
-      .ok {
-        color: var(--ok);
-      }
-      .bad {
-        color: var(--bad);
-      }
-      .warn {
-        color: var(--warn);
-      }
-      .info {
-        color: var(--info);
-      }
-
-      .sun-times {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        text-align: center;
-        gap: 4px;
-      }
-
-      .sun-times .tile-value {
-        font-size: 0.95em;
-      }
-
-      .sun-times .gate-event .tile-value {
+      .timeline li.gate-event .time {
         color: var(--accent);
+        font-weight: 700;
       }
 
-      .gate-event-tag {
-        font-size: 0.7em;
-        color: var(--accent);
-        margin-top: 2px;
+      .timeline li.gate-event::before {
+        width: 10px;
+        height: 10px;
+        left: -2px;
+        margin-top: -7px;
+        background: var(--accent);
+        border-color: var(--accent);
       }
 
-      /* Diagnostics */
-      .diag-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-      }
-
-      .diag-header h2 {
-        margin-bottom: 0;
-      }
-
-      .diagnostics-log {
-        background: var(--log-bg);
-        border-radius: 8px;
-        padding: 8px 10px;
-        max-height: 220px;
-        overflow-y: auto;
-        font-family: ui-monospace, "SF Mono", Menlo, monospace;
-        font-size: 0.8em;
-      }
-
-      .log-entry {
-        padding: 3px 0;
-        border-bottom: 1px solid var(--border);
+      .schedule-off .timeline li.gate-event,
+      .schedule-off .timeline li.gate-event .time {
         color: var(--muted);
+        text-decoration: line-through;
       }
 
-      .log-entry:last-child {
-        border-bottom: none;
+      .schedule-off .timeline li.gate-event::before {
+        background: var(--muted);
+        border-color: var(--muted);
       }
+{% endblock %}
 
-      .log-entry.error {
-        color: var(--bad);
-      }
-
-      .last-updated {
-        text-align: center;
-        font-size: 0.75em;
-        color: var(--muted);
-      }
-
-      /* Toast */
-      .toast {
-        position: fixed;
-        left: 50%;
-        bottom: 20px;
-        transform: translateX(-50%);
-        max-width: 90vw;
-        padding: 10px 16px;
-        border-radius: 10px;
-        font-size: 0.9em;
-        color: #fff;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-        display: none;
-        z-index: 10;
-      }
-
-      .toast.success {
-        background: var(--ok);
-      }
-      .toast.error {
-        background: var(--bad);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
+{% block content %}
       <div class="header">
         <h1>🐔 Chicken Gate</h1>
         <div class="header-right">
@@ -450,6 +92,12 @@
           >
             A
           </button>
+          <a class="icon-btn" href="/settings" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </a>
         </div>
       </div>
 
@@ -484,36 +132,14 @@
 
       <div class="card">
         <h2>Status</h2>
-        <div class="tiles">
+        <div class="tiles" id="status-tiles">
           <div class="tile">
-            <div class="tile-label">Opens</div>
-            <div class="tile-value" id="gate-open-time">--</div>
-            <div class="tile-sub">at sunrise</div>
+            <div class="tile-label">Morning</div>
+            <ul class="timeline" id="morning-timeline"></ul>
           </div>
           <div class="tile">
-            <div class="tile-label">Closes</div>
-            <div class="tile-value" id="gate-close-time">--</div>
-            <div class="tile-sub">at dusk</div>
-          </div>
-          <div class="tile wide sun-times">
-            <div>
-              <div class="tile-label">Dawn</div>
-              <div class="tile-value" id="dawn-time">--</div>
-            </div>
-            <div class="gate-event">
-              <div class="tile-label">Sunrise</div>
-              <div class="tile-value" id="sunrise-time">--</div>
-              <div class="gate-event-tag">opens</div>
-            </div>
-            <div>
-              <div class="tile-label">Sunset</div>
-              <div class="tile-value" id="sunset-time">--</div>
-            </div>
-            <div class="gate-event">
-              <div class="tile-label">Dusk</div>
-              <div class="tile-value" id="dusk-time">--</div>
-              <div class="gate-event-tag">closes</div>
-            </div>
+            <div class="tile-label">Evening</div>
+            <ul class="timeline" id="evening-timeline"></ul>
           </div>
           <div class="tile wide tile-row">
             <div class="tile-label">Closed switch</div>
@@ -531,33 +157,43 @@
       </div>
 
       <div class="last-updated" id="last-updated">Last updated: --</div>
-    </div>
+{% endblock %}
 
-    <div class="toast" id="toast"></div>
-
+{% block scripts %}
     <script>
       let updateInterval;
-      let toastTimer;
 
-      const $ = (id) => document.getElementById(id);
-      const timeFmt = { hour: "numeric", minute: "2-digit" };
-
-      function setText(id, text, className) {
-        const el = $(id);
-        el.textContent = text;
-        if (className !== undefined) el.className = className;
+      // Times are compared to the minute, as shown; a sun event sorts before a
+      // gate event at the same minute (e.g. "opens at sunrise").
+      function minuteOf(iso) {
+        const d = new Date(iso);
+        d.setSeconds(0, 0);
+        return d.getTime();
       }
 
-      function formatIso(iso) {
-        return iso ? new Date(iso).toLocaleTimeString([], timeFmt) : "--";
-      }
-
-      function formatHhMm(hhmm) {
-        if (!hhmm || !/^\d{1,2}:\d{2}$/.test(hhmm)) return "--";
-        const [h, m] = hhmm.split(":").map(Number);
-        const d = new Date();
-        d.setHours(h, m, 0, 0);
-        return d.toLocaleTimeString([], timeFmt);
+      function renderTimeline(id, schedule, sunEvents, gateEvent) {
+        const items = sunEvents
+          .filter(([key]) => schedule[key])
+          .map(([key, label]) => ({ label, iso: schedule[key], gate: false }));
+        if (schedule[gateEvent[0]]) {
+          items.push({ label: gateEvent[1], iso: schedule[gateEvent[0]], gate: true });
+        }
+        items.sort(
+          (a, b) => minuteOf(a.iso) - minuteOf(b.iso) || a.gate - b.gate
+        );
+        $(id).replaceChildren(
+          ...items.map((item) => {
+            const li = document.createElement("li");
+            if (item.gate) li.className = "gate-event";
+            const label = document.createElement("span");
+            label.textContent = item.label;
+            const time = document.createElement("span");
+            time.className = "time";
+            time.textContent = formatIso(item.iso);
+            li.append(label, time);
+            return li;
+          })
+        );
       }
 
       async function updateStatus() {
@@ -594,12 +230,19 @@
           );
 
           const schedule = data.schedule || {};
-          setText("gate-open-time", formatHhMm(schedule.gate_open_time));
-          setText("gate-close-time", formatHhMm(schedule.gate_close_time));
-          setText("dawn-time", formatIso(schedule.dawn));
-          setText("sunrise-time", formatIso(schedule.sunrise));
-          setText("sunset-time", formatIso(schedule.sunset));
-          setText("dusk-time", formatIso(schedule.dusk));
+          $("status-tiles").classList.toggle("schedule-off", !data.schedule_enabled);
+          renderTimeline(
+            "morning-timeline",
+            schedule,
+            [["dawn", "Dawn"], ["sunrise", "Sunrise"]],
+            ["gate_open", "Opens"]
+          );
+          renderTimeline(
+            "evening-timeline",
+            schedule,
+            [["sunset", "Sunset"], ["dusk", "Dusk"]],
+            ["gate_close", "Closes"]
+          );
 
           updateErrors(errors);
           updateDiagnostics(data.diagnostic_messages || []);
@@ -647,19 +290,6 @@
         );
       }
 
-      async function post(url, body) {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: body ? JSON.stringify(body) : undefined,
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.success) {
-          throw new Error(data.message || "Request failed");
-        }
-        return data;
-      }
-
       async function sendCommand(command) {
         try {
           const data = await post("/api/command", { command });
@@ -679,58 +309,6 @@
           showToast(error.message, "error");
         }
       }
-
-      function showToast(message, type) {
-        const toast = $("toast");
-        toast.textContent = message;
-        toast.className = "toast " + type;
-        toast.style.display = "block";
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => (toast.style.display = "none"), 3000);
-      }
-
-      const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
-      const themePreferences = ["auto", "light", "dark"];
-      let themePreference =
-        document.documentElement.dataset.themePreference || "auto";
-
-      function applyTheme(preference) {
-        themePreference = preference;
-        const theme =
-          preference === "auto"
-            ? colorScheme.matches
-              ? "dark"
-              : "light"
-            : preference;
-        const nextPreference =
-          themePreferences[
-            (themePreferences.indexOf(preference) + 1) % themePreferences.length
-          ];
-        const button = $("themeBtn");
-        document.documentElement.dataset.themePreference = preference;
-        document.documentElement.dataset.theme = theme;
-        button.textContent =
-          preference === "auto" ? "A" : preference === "dark" ? "☀️" : "🌙";
-        button.title = `Theme: ${preference[0].toUpperCase()}${preference.slice(1)} (click for ${nextPreference})`;
-        button.setAttribute(
-          "aria-label",
-          `Theme: ${preference}. Click to switch to ${nextPreference}.`,
-        );
-      }
-
-      $("themeBtn").onclick = () => {
-        const next =
-          themePreferences[
-            (themePreferences.indexOf(themePreference) + 1) %
-              themePreferences.length
-          ];
-        localStorage.setItem("theme", next);
-        applyTheme(next);
-      };
-      colorScheme.addEventListener("change", () => {
-        if (themePreference === "auto") applyTheme("auto");
-      });
-      applyTheme(themePreference);
 
       $("openBtn").onclick = () => sendCommand("OPEN");
       $("closeBtn").onclick = () => sendCommand("CLOSE");
@@ -756,5 +334,4 @@
       );
       startUpdates();
     </script>
-  </body>
-</html>
+{% endblock %}
