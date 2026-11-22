@@ -106,7 +106,7 @@ scp /usr/share/zoneinfo/America/Vancouver pi@chicken-gate:/tmp/Vancouver  # on t
 # then on the Pi:
 sudo install -m 644 /tmp/Vancouver /usr/share/zoneinfo/America/Vancouver
 sudo timedatectl set-timezone America/Vancouver
-sudo systemctl restart chicken-gate.service
+sudo systemctl restart chicken-gate.service chicken-gate-web.service rsyslog
 date   # should show MST (UTC-7)
 ```
 
