@@ -47,3 +47,39 @@ def test_marker_is_consumed_so_a_later_hang_is_detected(paths):
 def test_first_start_long_after_boot_not_reported(paths):
     # e.g. the first deploy of this check onto a Pi that's been up for hours
     assert not boot_check.check_for_unexpected_restart(uptime_s=9 * 3600)
+
+
+def test_log_summary_includes_only_entries_before_this_boot(tmp_path):
+    syslog = tmp_path / "syslog"
+    syslog.write_text(
+        "Nov 21 21:00:00 raspberrypi chicken-gate-main[10]: Started chicken gate\n"
+        "Nov 21 21:59:50 raspberrypi chicken-gate-main[10]: last old-boot event\n"
+        "Nov 22 00:00:00 raspberrypi rsyslogd: [origin software=rsyslogd] start\n"
+        "Nov 22 00:00:10 raspberrypi chicken-gate-main[20]: current-boot event\n"
+    )
+
+    summary = boot_check.get_previous_boot_log_summary([syslog])
+
+    assert "last old-boot event" in summary
+    assert "current-boot event" not in summary
+
+
+def test_log_summary_combines_rotated_and_current_logs_in_order(tmp_path):
+    rotated = tmp_path / "syslog.1"
+    current = tmp_path / "syslog"
+    rotated.write_text(
+        "Nov 21 21:00:00 raspberrypi chicken-gate-main[10]: Started chicken gate\n"
+        "Nov 21 21:58:00 raspberrypi old event\n"
+    )
+    current.write_text(
+        "Nov 21 21:59:00 raspberrypi latest event\n"
+        "Nov 22 00:00:00 raspberrypi systemd[1]: Starting System Logging Service...\n"
+        "Nov 22 00:00:10 raspberrypi current event\n"
+    )
+
+    summary = boot_check.get_previous_boot_log_summary([rotated, current])
+
+    assert summary.splitlines() == [
+        "Nov 21 21:58:00 raspberrypi old event",
+        "Nov 21 21:59:00 raspberrypi latest event",
+    ]

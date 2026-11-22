@@ -126,7 +126,14 @@ systemctl show -p RuntimeWatchdogUSec   # should show 14s
 If the Pi restarts without a clean shutdown (a watchdog reset or a power
 loss), the gate emails you once it's back on the network. Normal reboots and
 service restarts don't send an email: the gate service writes a
-`.clean_shutdown` marker whenever it's stopped cleanly.
+`.clean_shutdown` marker whenever it's stopped cleanly. The alert includes up
+to 20 recent log entries from before the boot, read from `/var/log/syslog`.
+Rsyslog writes to that file once; the duplicate `/var/log/daemon.log` output
+is disabled to reduce SD card writes. The current syslog is kept, so it remains
+available for diagnosing a restart; logrotate manages its normal rotation.
+On this Pi, the duplicate output is disabled by commenting out
+`daemon.* -/var/log/daemon.log` in `/etc/rsyslog.conf`. Validate any rsyslog
+configuration change with `sudo rsyslogd -N1`, then restart rsyslog.
 
 ## Running the Services
 

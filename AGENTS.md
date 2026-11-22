@@ -109,12 +109,14 @@ moving loses the move. Check `/api/status` first, and only restart when
   "Time Zone".
 - **Hardware watchdog:** systemd runs it with `RuntimeWatchdogSec=14` (the
   bcm2835 maximum is about 15 s). If the Pi hangs, it reboots.
-- **journald is not persistent.** After a reboot, the history is in rsyslog's
-  `/var/log/syslog` and `/var/log/daemon.log` (on the SD card, rotated by
-  logrotate). Long-running processes such as rsyslog keep the time zone they
-  started with, so restart them after a time zone change.
+- **journald is not persistent.** After a reboot, rsyslog keeps history in
+  `/var/log/syslog` (rotated by logrotate). Avoid adding a separate file for
+  messages already sent there. Long-running processes such as rsyslog keep the
+  time zone they started with, so restart them after a time zone change.
 - **Logging volume is an SD card wear cost.** Keep the gate's steady-state
-  logging to events only (no per-tick prints). It's currently about 20 KB an hour.
+  logging to events only (no per-tick prints), and don't duplicate messages in
+  multiple files. Unexpected-restart emails include up to 20 recent pre-boot
+  lines from the persistent syslog.
 
 ## Hardware and gate behaviour
 
