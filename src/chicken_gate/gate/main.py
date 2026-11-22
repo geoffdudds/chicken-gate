@@ -129,6 +129,9 @@ def main():
             # Write status for web interface - pass the gate object, not gate_drv
             write_gate_status(gate_drv.gate, schedule, schedule_enabled)
 
+        # Sleep until the next tick instead of busy-waiting, which pins the CPU
+        time.sleep(max(0.0, next_tick - time.perf_counter()))
+
 
 if __name__ == "__main__":
     main()

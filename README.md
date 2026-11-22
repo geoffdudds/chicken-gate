@@ -94,6 +94,22 @@ Edit the configuration in `src/chicken_gate/shared/config.py`:
 - Gate timing parameters
 - API endpoints
 
+### Time Zone
+
+Sun times and the open/close schedule follow the Pi's system time zone, which
+should be `America/Vancouver`. BC moved to permanent UTC-7 on 2026-11-01, which
+requires tzdata 2026 or newer. Raspbian 10 (buster) only ships 2024a, so copy an
+up-to-date zone file from a newer machine:
+
+```bash
+scp /usr/share/zoneinfo/America/Vancouver pi@chicken-gate:/tmp/Vancouver  # on the newer machine
+# then on the Pi:
+sudo install -m 644 /tmp/Vancouver /usr/share/zoneinfo/America/Vancouver
+sudo timedatectl set-timezone America/Vancouver
+sudo systemctl restart chicken-gate.service
+date   # should show MST (UTC-7)
+```
+
 ## Running the Services
 
 ### Manual Testing

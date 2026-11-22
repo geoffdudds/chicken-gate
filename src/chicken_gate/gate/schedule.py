@@ -12,6 +12,7 @@ class Schedule:
         self.__close_time = None
         self.__lift_job = None
         self.__lower_job = None
+        self.__sun_times = {}
         self.gate_cmd = Cmd.NONE
         self.__add_to_log("Program started")
 
@@ -35,12 +36,17 @@ class Schedule:
         return gate_cmd
 
     def get_schedule_info(self):
-        """Get comprehensive schedule information for the web interface"""
+        """Get comprehensive schedule information for the web interface.
+
+        Uses sun times cached at the last schedule update; this is called every
+        tick, and recomputing them each time saturates the Pi Zero's CPU.
+        """
+        sun_times = self.__sun_times
         return {
-            "dawn": self.__suntime.get_dawn().isoformat(),
-            "dusk": self.__suntime.get_dusk().isoformat(),
-            "sunrise": self.__suntime.get_sunrise().isoformat(),
-            "sunset": self.__suntime.get_sunset().isoformat(),
+            "dawn": sun_times["dawn"].isoformat(),
+            "dusk": sun_times["dusk"].isoformat(),
+            "sunrise": sun_times["sunrise"].isoformat(),
+            "sunset": sun_times["sunset"].isoformat(),
             "gate_open_time": self.__open_time.strftime("%H:%M")
             if self.__open_time
             else "Unknown",
@@ -75,8 +81,9 @@ class Schedule:
         self.__sched.print_jobs()
 
     def __update_open_and_close_times(self):
-        self.__open_time = self.__suntime.get_sunrise()
-        self.__close_time = self.__suntime.get_dusk()
+        self.__sun_times = self.__suntime.get_times()
+        self.__open_time = self.__sun_times["sunrise"]
+        self.__close_time = self.__sun_times["dusk"]
 
     def __close(self):
         self.__add_to_log("Executing scheduled close job...")

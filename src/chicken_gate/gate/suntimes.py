@@ -11,8 +11,11 @@ class SunTimes:
             "Nanaimo", "Canada", "pst", self.__latitude, self.__longitude
         )
 
+    def get_times(self):
+        """Return today's dawn, sunrise, sunset and dusk from a single calculation."""
+        return sun(self.__loc_info.observer, tzinfo=tz.gettz())
+
     def get_dawn(self):
-        print(tz.gettz())
         loc_times = sun(self.__loc_info.observer, tzinfo=tz.gettz())
         return loc_times["dawn"]
 
