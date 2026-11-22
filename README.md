@@ -123,6 +123,11 @@ sudo systemctl daemon-reexec   # applies without a reboot
 systemctl show -p RuntimeWatchdogUSec   # should show 14s
 ```
 
+If the Pi restarts without a clean shutdown (a watchdog reset or a power
+loss), the gate emails you once it's back on the network. Normal reboots and
+service restarts don't send an email: the gate service writes a
+`.clean_shutdown` marker whenever it's stopped cleanly.
+
 ## Running the Services
 
 ### Manual Testing

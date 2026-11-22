@@ -1,10 +1,13 @@
 import contextlib
 import json
 import os
+import signal
+import sys
 import time
 from datetime import datetime
 
 from ..shared.config import get_status_file_path
+from . import boot_check
 from .gate import Gate
 from .gate_cmd import Cmd
 from .gate_drv import Gate_drv
@@ -66,6 +69,14 @@ def main():
     gate_drv = Gate_drv(gate)
     schedule = Schedule()
 
+    if boot_check.check_for_unexpected_restart():
+        print("Pi restarted without a clean shutdown (watchdog or power loss)")
+        boot_check.notify_unexpected_restart(gate_drv.is_switch_pressed())
+
+    # systemd stops the service with SIGTERM; turn it into SystemExit so the
+    # shutdown below runs.
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
+
     # Add schedule control flag here in main.py
     schedule_enabled = True  # Default to enabled
 
@@ -75,80 +86,87 @@ def main():
     next_tick = last_tick
     last_status_write = None
 
-    while True:
-        # push scheduled commands to driver (only if schedule is enabled)
-        if schedule_enabled:
-            sched_cmd = schedule.get_gate_cmd()
-            if sched_cmd == Cmd.OPEN:
-                print("sched cmd to open gate")
-                gate_drv.open()
-            elif sched_cmd == Cmd.CLOSE:
-                print("sched cmd to close gate")
-                gate_drv.close()
+    try:
+        while True:
+            # push scheduled commands to driver (only if schedule is enabled)
+            if schedule_enabled:
+                sched_cmd = schedule.get_gate_cmd()
+                if sched_cmd == Cmd.OPEN:
+                    print("sched cmd to open gate")
+                    gate_drv.open()
+                elif sched_cmd == Cmd.CLOSE:
+                    print("sched cmd to close gate")
+                    gate_drv.close()
 
-        # push shell & web commands to driver
-        gate_cmd = check_command_file()
-        if gate_cmd == "OPEN":
-            print("cmd to open gate")
-            gate_drv.open()
-        elif gate_cmd == "CLOSE":
-            print("cmd to close gate")
-            gate_drv.close()
-        elif gate_cmd == "STOP":
-            print("cmd to stop gate")
-            gate_drv.stop()
-        elif gate_cmd == "ENABLE_SCHEDULE":
-            print("cmd to enable schedule")
-            schedule_enabled = True
-        elif gate_cmd == "DISABLE_SCHEDULE":
-            print("cmd to disable schedule")
-            schedule_enabled = False
-        elif gate_cmd == "CLEAR_ERRORS":
-            print("shell cmd to clear errors")
-            gate_drv.gate.clear_errors()
-        elif gate_cmd == "CLEAR_DIAGNOSTICS":
-            print("shell cmd to clear diagnostics")
-            gate_drv.gate.clear_diagnostic_messages()
-        elif gate_cmd and gate_cmd.startswith("RESET"):
-            # Handle reset commands: RESET or RESET:position
-            parts = gate_cmd.split(":")
-            if len(parts) == 1:
-                # RESET - reset to current switch position (100 if closed, 0 if open)
-                reset_pos = 100 if gate_drv.is_switch_pressed() else 0
-                print(f"shell cmd to reset gate position to {reset_pos}")
-                gate_drv.reset_posn_to(reset_pos)
-            elif len(parts) == 2:
-                # RESET:position - reset to specific position
-                try:
-                    reset_pos = int(parts[1])
+            # push shell & web commands to driver
+            gate_cmd = check_command_file()
+            if gate_cmd == "OPEN":
+                print("cmd to open gate")
+                gate_drv.open()
+            elif gate_cmd == "CLOSE":
+                print("cmd to close gate")
+                gate_drv.close()
+            elif gate_cmd == "STOP":
+                print("cmd to stop gate")
+                gate_drv.stop()
+            elif gate_cmd == "ENABLE_SCHEDULE":
+                print("cmd to enable schedule")
+                schedule_enabled = True
+            elif gate_cmd == "DISABLE_SCHEDULE":
+                print("cmd to disable schedule")
+                schedule_enabled = False
+            elif gate_cmd == "CLEAR_ERRORS":
+                print("shell cmd to clear errors")
+                gate_drv.gate.clear_errors()
+            elif gate_cmd == "CLEAR_DIAGNOSTICS":
+                print("shell cmd to clear diagnostics")
+                gate_drv.gate.clear_diagnostic_messages()
+            elif gate_cmd and gate_cmd.startswith("RESET"):
+                # Handle reset commands: RESET or RESET:position
+                parts = gate_cmd.split(":")
+                if len(parts) == 1:
+                    # RESET - reset to current switch position (100 if closed, 0 if open)
+                    reset_pos = 100 if gate_drv.is_switch_pressed() else 0
                     print(f"shell cmd to reset gate position to {reset_pos}")
                     gate_drv.reset_posn_to(reset_pos)
-                except ValueError:
-                    print(f"Invalid reset position: {parts[1]}")
-            else:
-                print(f"Invalid reset command format: {gate_cmd}")
+                elif len(parts) == 2:
+                    # RESET:position - reset to specific position
+                    try:
+                        reset_pos = int(parts[1])
+                        print(f"shell cmd to reset gate position to {reset_pos}")
+                        gate_drv.reset_posn_to(reset_pos)
+                    except ValueError:
+                        print(f"Invalid reset position: {parts[1]}")
+                else:
+                    print(f"Invalid reset command format: {gate_cmd}")
 
-        # Position is dead-reckoned from motor run time, so integrate over the
-        # real elapsed time. Assuming a fixed 100 ms let the estimate fall
-        # behind whenever a loop pass ran long, so the motor overran its target.
-        now = time.monotonic()
-        gate_drv.tick(now - last_tick)
-        last_tick = now
+            # Position is dead-reckoned from motor run time, so integrate over the
+            # real elapsed time. Assuming a fixed 100 ms let the estimate fall
+            # behind whenever a loop pass ran long, so the motor overran its target.
+            now = time.monotonic()
+            gate_drv.tick(now - last_tick)
+            last_tick = now
 
-        # Throttle status writes to spare the SD card, but write immediately
-        # after a command so the web page reflects it on its next poll.
-        if (
-            gate_cmd
-            or last_status_write is None
-            or now - last_status_write >= STATUS_WRITE_PERIOD
-        ):
-            write_gate_status(gate_drv.gate, schedule, schedule_enabled)
-            last_status_write = now
+            # Throttle status writes to spare the SD card, but write immediately
+            # after a command so the web page reflects it on its next poll.
+            if (
+                gate_cmd
+                or last_status_write is None
+                or now - last_status_write >= STATUS_WRITE_PERIOD
+            ):
+                write_gate_status(gate_drv.gate, schedule, schedule_enabled)
+                last_status_write = now
 
-        next_tick += TICK_PERIOD
-        # After a long stall, resume the normal cadence instead of bursting
-        next_tick = max(next_tick, time.monotonic())
-        time.sleep(max(0.0, next_tick - time.monotonic()))
+            next_tick += TICK_PERIOD
+            # After a long stall, resume the normal cadence instead of bursting
+            next_tick = max(next_tick, time.monotonic())
+            time.sleep(max(0.0, next_tick - time.monotonic()))
+
+    except (SystemExit, KeyboardInterrupt):
+        gate_drv.stop()
+        gate_drv.tick(0)
+        boot_check.record_clean_shutdown()
+        print("Stopped chicken gate")
 
 
 if __name__ == "__main__":
