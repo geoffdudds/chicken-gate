@@ -9,9 +9,14 @@
       // Apply the saved theme before first paint to avoid a flash of the wrong theme.
       (function () {
         const saved = localStorage.getItem("theme");
-        const dark = saved
-          ? saved === "dark"
-          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const preference = ["auto", "light", "dark"].includes(saved)
+          ? saved
+          : "auto";
+        const dark =
+          preference === "auto"
+            ? window.matchMedia("(prefers-color-scheme: dark)").matches
+            : preference === "dark";
+        document.documentElement.dataset.themePreference = preference;
         document.documentElement.dataset.theme = dark ? "dark" : "light";
       })();
     </script>
@@ -420,10 +425,10 @@
           <button
             class="icon-btn"
             id="themeBtn"
-            title="Toggle dark mode"
-            aria-label="Toggle dark mode"
+            title="Theme: Auto"
+            aria-label="Theme: Auto. Click to change."
           >
-            🌙
+            A
           </button>
         </div>
       </div>
@@ -671,18 +676,48 @@
         toastTimer = setTimeout(() => (toast.style.display = "none"), 3000);
       }
 
-      function applyTheme(theme) {
+      const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+      const themePreferences = ["auto", "light", "dark"];
+      let themePreference =
+        document.documentElement.dataset.themePreference || "auto";
+
+      function applyTheme(preference) {
+        themePreference = preference;
+        const theme =
+          preference === "auto"
+            ? colorScheme.matches
+              ? "dark"
+              : "light"
+            : preference;
+        const nextPreference =
+          themePreferences[
+            (themePreferences.indexOf(preference) + 1) % themePreferences.length
+          ];
+        const button = $("themeBtn");
+        document.documentElement.dataset.themePreference = preference;
         document.documentElement.dataset.theme = theme;
-        $("themeBtn").textContent = theme === "dark" ? "☀️" : "🌙";
+        button.textContent =
+          preference === "auto" ? "A" : preference === "dark" ? "☀️" : "🌙";
+        button.title = `Theme: ${preference[0].toUpperCase()}${preference.slice(1)} (click for ${nextPreference})`;
+        button.setAttribute(
+          "aria-label",
+          `Theme: ${preference}. Click to switch to ${nextPreference}.`,
+        );
       }
 
       $("themeBtn").onclick = () => {
         const next =
-          document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+          themePreferences[
+            (themePreferences.indexOf(themePreference) + 1) %
+              themePreferences.length
+          ];
         localStorage.setItem("theme", next);
         applyTheme(next);
       };
-      applyTheme(document.documentElement.dataset.theme);
+      colorScheme.addEventListener("change", () => {
+        if (themePreference === "auto") applyTheme("auto");
+      });
+      applyTheme(themePreference);
 
       $("openBtn").onclick = () => sendCommand("OPEN");
       $("closeBtn").onclick = () => sendCommand("CLOSE");
