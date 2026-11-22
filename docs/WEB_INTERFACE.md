@@ -13,16 +13,16 @@ A modern web interface to monitor and control your automated chicken gate system
 
 🎮 **Remote Control**
 
-- Open gate button
-- Close gate button
-- Reset position (auto or manual)
+- Open, Stop and Close buttons at the top of the page
+- Auto schedule on/off switch
+- Reset position
 - Command feedback and status messages
 
 📱 **Responsive Design**
 
-- Works on desktop, tablet, and mobile
-- Modern, beautiful interface
-- Easy-to-use controls
+- Compact two-column layout that fits on one phone screen
+- Dark mode: follows the device setting by default; the 🌙/☀️ button
+  overrides it and is remembered per browser
 
 ## Setup
 
