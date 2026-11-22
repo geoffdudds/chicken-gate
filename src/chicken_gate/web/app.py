@@ -146,7 +146,7 @@ def settings_page():
     return render_template(
         "settings.html",
         defaults=user_settings.DEFAULTS,
-        open_travel_range=user_settings.OPEN_TRAVEL_RANGE,
+        travel_range=user_settings.TRAVEL_RANGE,
         offset_range=user_settings.OFFSET_RANGE,
     )
 

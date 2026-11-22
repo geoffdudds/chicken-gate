@@ -30,6 +30,10 @@ class Gate:
         """Set the full-travel opening time (s); the gate counts as open after it."""
         self.__open_rate = 100 / open_time
 
+    def set_close_time(self, close_time):
+        """Set the full-travel closing time (s); the gate counts as closed after it."""
+        self.__close_rate = 100 / close_time
+
     def get_posn(self):
         return self.__posn
 

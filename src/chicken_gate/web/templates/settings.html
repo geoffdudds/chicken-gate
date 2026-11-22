@@ -88,6 +88,36 @@
         gap: 8px;
       }
 
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background: var(--tile);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 3px;
+        gap: 3px;
+      }
+
+      .segmented input {
+        display: none;
+      }
+
+      .segmented span {
+        display: block;
+        text-align: center;
+        padding: 8px 0;
+        border-radius: 7px;
+        cursor: pointer;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .segmented input:checked + span {
+        background: var(--card);
+        color: var(--text);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+
       .btn-save {
         background: var(--accent);
         padding: 12px 28px;
@@ -144,18 +174,34 @@
         <div class="card">
           <h2>Gate travel</h2>
           <div class="field">
-            <div class="field-label">Opening run time</div>
+            <div class="field-label">Lowering time (open)</div>
             <div class="field-row">
               <button type="button" class="btn btn-small step-btn" data-step="open_travel_s:-10" aria-label="10 seconds less">−</button>
               <input type="number" id="open_travel_s" step="1"
-                     min="{{ open_travel_range[0] }}" max="{{ open_travel_range[1] }}" aria-label="Opening run time in seconds" />
+                     min="{{ travel_range[0] }}" max="{{ travel_range[1] }}" aria-label="Lowering time in seconds" />
               <button type="button" class="btn btn-small step-btn" data-step="open_travel_s:10" aria-label="10 seconds more">+</button>
               <span class="unit">s</span>
-              <span class="unit" id="open-travel-mins"></span>
+              <span class="unit" id="open_travel_s-mins"></span>
             </div>
             <div class="field-hint">
               How long the motor lowers the gate, from closed, before it counts
               as fully open. Default {{ defaults.open_travel_s }} s.
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label">Raising time (close)</div>
+            <div class="field-row">
+              <button type="button" class="btn btn-small step-btn" data-step="close_travel_s:-10" aria-label="10 seconds less">−</button>
+              <input type="number" id="close_travel_s" step="1"
+                     min="{{ travel_range[0] }}" max="{{ travel_range[1] }}" aria-label="Raising time in seconds" />
+              <button type="button" class="btn btn-small step-btn" data-step="close_travel_s:10" aria-label="10 seconds more">+</button>
+              <span class="unit">s</span>
+              <span class="unit" id="close_travel_s-mins"></span>
+            </div>
+            <div class="field-hint">
+              Full travel time from open to closed. The motor keeps running for
+              the last 10% of this after the closed switch trips, to tension the
+              spring. Default {{ defaults.close_travel_s }} s.
             </div>
           </div>
         </div>
@@ -165,6 +211,18 @@
           <button type="submit" class="btn btn-save" id="saveBtn">Save</button>
         </div>
       </form>
+
+      <div class="card">
+        <h2>Appearance</h2>
+        <div class="segmented" role="radiogroup" aria-label="Theme">
+          <label><input type="radio" name="theme" value="auto" /><span>Auto</span></label>
+          <label><input type="radio" name="theme" value="light" /><span>Light</span></label>
+          <label><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
+        </div>
+        <div class="field-hint">
+          Applies right away on this device. Auto follows the phone's setting.
+        </div>
+      </div>
 {% endblock %}
 
 {% block scripts %}
@@ -211,13 +269,15 @@
           previewTime(v.close_event, v.close_offset_min) +
             describeOffset(v.close_offset_min, v.close_event)
         );
-        const s = v.open_travel_s;
-        setText(
-          "open-travel-mins",
-          Number.isInteger(s) && s > 0
-            ? `(${Math.floor(s / 60)} min ${s % 60} s)`
-            : ""
-        );
+        for (const key of ["open_travel_s", "close_travel_s"]) {
+          const s = v[key];
+          setText(
+            key + "-mins",
+            Number.isInteger(s) && s > 0
+              ? `(${Math.floor(s / 60)} min ${s % 60} s)`
+              : ""
+          );
+        }
       }
 
       document.querySelectorAll("[data-step]").forEach((btn) => {
@@ -232,6 +292,11 @@
 
       $("settings-form").addEventListener("input", updatePreview);
       $("settings-form").addEventListener("change", updatePreview);
+
+      document.querySelectorAll('input[name="theme"]').forEach((radio) => {
+        radio.checked = radio.value === themePreference;
+        radio.onchange = () => setThemePreference(radio.value);
+      });
 
       $("defaultsBtn").onclick = () => fillForm(DEFAULTS);
 

@@ -21,13 +21,15 @@ A modern web interface to monitor and control your automated chicken gate system
 
 - Open time: minutes before/after dawn or sunrise
 - Close time: minutes before/after sunset or dusk
-- Opening run time: how long the motor runs before the gate counts as fully open
+- Lowering time: how long the motor runs before the gate counts as fully open
+- Raising time: full travel time from open to closed
+- Appearance: Auto / Light / Dark theme
 - Changes apply immediately, without restarting the gate service
 
 📱 **Responsive Design**
 
 - Compact two-column layout that fits on one phone screen
-- Dark mode: follows the device setting by default; the 🌙/☀️ button
+- Dark mode: follows the device setting by default; Settings → Appearance
   overrides it and is remembered per browser
 
 ## Setup

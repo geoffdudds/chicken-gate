@@ -129,8 +129,8 @@ moving loses the move. Check `/api/status` first, and only restart when
   - **There is no open switch.** Opening is purely timed.
 - **Position:** 0 = fully open, 100 = fully closed. With no open switch, the
   position comes from dead reckoning on measured elapsed time (`Gate.tick`).
-  Full travel takes about 280 s to open (the "opening run time" setting) and
-  420 s to close. Always pass the real
+  Full travel takes about 280 s to open and 420 s to close (the "lowering
+  time" and "raising time" settings). Always pass the real
   elapsed time to `tick()`. An earlier fixed 0.1 s/tick assumption made the
   gate open 20–30% too far when the loop ran slow.
 - **The extra 10% after the closed switch is intentional.** The rope has a
@@ -178,6 +178,6 @@ uv run --no-project -q --with pytest --with pytest-mock --with astral \
   compact 2-column tile grid.
 - There is no camera.
 - The gear icon in the header opens `/settings`.
-- The theme button cycles Auto → Light → Dark. Auto follows the OS setting
-  live. Colours are CSS variables in `:root` and `[data-theme="dark"]`.
+- The theme (Auto / Light / Dark) is chosen on the settings page and stored
+  per browser in localStorage. Auto follows the OS setting live. Colours are CSS variables in `:root` and `[data-theme="dark"]`.
 - The owner prefers a clean, uncluttered look, so keep additions subtle.

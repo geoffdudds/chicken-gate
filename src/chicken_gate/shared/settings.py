@@ -15,11 +15,12 @@ from .config import get_settings_path
 OPEN_EVENTS = ("dawn", "sunrise")
 CLOSE_EVENTS = ("sunset", "dusk")
 
-OPEN_TRAVEL_RANGE = (30, 900)  # seconds
+TRAVEL_RANGE = (30, 900)  # seconds
 OFFSET_RANGE = (-120, 120)  # minutes
 
 DEFAULTS = {
     "open_travel_s": 280,
+    "close_travel_s": 420,
     "open_event": "sunrise",
     "open_offset_min": 0,
     "close_event": "dusk",
@@ -58,7 +59,10 @@ def validate(data):
         raise ValueError("Settings must be an object")
     return {
         "open_travel_s": _int_in_range(
-            data, "open_travel_s", OPEN_TRAVEL_RANGE, "Open travel time", "seconds"
+            data, "open_travel_s", TRAVEL_RANGE, "Lowering time", "seconds"
+        ),
+        "close_travel_s": _int_in_range(
+            data, "close_travel_s", TRAVEL_RANGE, "Raising time", "seconds"
         ),
         "open_event": _choice(data, "open_event", OPEN_EVENTS, "Open event"),
         "open_offset_min": _int_in_range(

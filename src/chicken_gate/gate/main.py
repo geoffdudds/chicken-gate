@@ -67,7 +67,9 @@ STATUS_WRITE_PERIOD = 1.0  # seconds; the web page polls every 2 s
 
 def main():
     settings = user_settings.load()
-    gate = Gate(open_time=settings["open_travel_s"])
+    gate = Gate(
+        open_time=settings["open_travel_s"], close_time=settings["close_travel_s"]
+    )
     gate_drv = Gate_drv(gate)
     schedule = Schedule(settings)
 
@@ -124,6 +126,7 @@ def main():
                 print("cmd to reload settings")
                 settings = user_settings.load()
                 gate_drv.gate.set_open_time(settings["open_travel_s"])
+                gate_drv.gate.set_close_time(settings["close_travel_s"])
                 schedule.apply_settings(settings, catch_up=schedule_enabled)
             elif gate_cmd == "CLEAR_DIAGNOSTICS":
                 print("shell cmd to clear diagnostics")

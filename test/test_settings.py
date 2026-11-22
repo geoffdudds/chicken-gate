@@ -34,6 +34,7 @@ class TestValidation:
             {"open_travel_s": 901},
             {"open_travel_s": 280.5},
             {"open_travel_s": True},
+            {"close_travel_s": 901},
             {"close_offset_min": 121},
             {"open_offset_min": "abc"},
             {"open_event": "dusk"},
@@ -59,13 +60,18 @@ class TestValidation:
         assert user_settings.load(tmp_path / "missing.json") == user_settings.DEFAULTS
 
 
-def test_gate_open_time_can_be_changed():
-    gate = Gate(init_posn=100, open_time=100)
+def test_gate_travel_times_can_be_changed():
+    gate = Gate(init_posn=100, open_time=100, close_time=100)
     gate.set_open_time(50)
+    gate.set_close_time(200)
     gate.open()
     gate.tick(0)
     gate.tick(25)
     assert gate.get_posn() == pytest.approx(50)
+    gate.close()
+    gate.tick(0)
+    gate.tick(50)
+    assert gate.get_posn() == pytest.approx(75)
 
 
 @pytest.fixture
@@ -165,5 +171,7 @@ class TestSettingsApi:
         assert not (tmp_path / "gate_cmd.txt").exists()
 
     def test_settings_page_renders(self, client):
-        assert b"Opening run time" in client.get("/settings").data
+        page = client.get("/settings").data
+        assert b'id="close_travel_s"' in page
+        assert b'name="theme"' in page
         assert b'href="/settings"' in client.get("/").data

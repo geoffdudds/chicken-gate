@@ -479,8 +479,9 @@
         toastTimer = setTimeout(() => (toast.style.display = "none"), 3000);
       }
 
+      // The theme is a per-browser choice (Auto/Light/Dark), saved in
+      // localStorage and chosen on the settings page.
       const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
-      const themePreferences = ["auto", "light", "dark"];
       let themePreference =
         document.documentElement.dataset.themePreference || "auto";
 
@@ -494,33 +495,13 @@
             : preference;
         document.documentElement.dataset.themePreference = preference;
         document.documentElement.dataset.theme = theme;
-
-        const button = $("themeBtn");
-        if (!button) return;
-        const nextPreference =
-          themePreferences[
-            (themePreferences.indexOf(preference) + 1) % themePreferences.length
-          ];
-        button.textContent =
-          preference === "auto" ? "A" : preference === "dark" ? "☀️" : "🌙";
-        button.title = `Theme: ${preference[0].toUpperCase()}${preference.slice(1)} (click for ${nextPreference})`;
-        button.setAttribute(
-          "aria-label",
-          `Theme: ${preference}. Click to switch to ${nextPreference}.`,
-        );
       }
 
-      if ($("themeBtn")) {
-        $("themeBtn").onclick = () => {
-          const next =
-            themePreferences[
-              (themePreferences.indexOf(themePreference) + 1) %
-                themePreferences.length
-            ];
-          localStorage.setItem("theme", next);
-          applyTheme(next);
-        };
+      function setThemePreference(preference) {
+        localStorage.setItem("theme", preference);
+        applyTheme(preference);
       }
+
       colorScheme.addEventListener("change", () => {
         if (themePreference === "auto") applyTheme("auto");
       });
