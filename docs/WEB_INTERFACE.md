@@ -8,7 +8,6 @@ A modern web interface to monitor and control your automated chicken gate system
 
 - Gate position with visual progress bar
 - Closed switch status
-- Open switch status (when installed)
 - Live updates every 2 seconds
 
 🎮 **Remote Control**
@@ -90,7 +89,7 @@ The web interface runs without authentication by default. If you plan to expose 
 **Web interface shows "Unknown" status:**
 
 - Check that the main gate process is running
-- Verify the `gate_status.json` file is being created
+- Verify `/dev/shm/chicken-gate-status.json` is being updated (it lives in RAM, not on the SD card)
 
 **Commands not working:**
 
@@ -111,7 +110,6 @@ chicken-gate/
 ├── templates/
 │   └── index.html          # Web interface template
 ├── start_system.py         # System startup script
-├── gate_status.json        # Status file (auto-generated)
 ├── gate_cmd.txt           # Command file (auto-generated)
 └── src/
     └── main.py            # Main gate control (modified)

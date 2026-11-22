@@ -310,6 +310,16 @@
         grid-column: span 2;
       }
 
+      .tile-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tile-row .tile-label {
+        margin-bottom: 0;
+      }
+
       .tile-label {
         font-size: 0.75em;
         color: var(--muted);
@@ -466,14 +476,6 @@
         <h2>Status</h2>
         <div class="tiles">
           <div class="tile">
-            <div class="tile-label">Closed switch</div>
-            <div class="tile-value" id="closed-switch">--</div>
-          </div>
-          <div class="tile">
-            <div class="tile-label">Open switch</div>
-            <div class="tile-value" id="open-switch">--</div>
-          </div>
-          <div class="tile">
             <div class="tile-label">Opens</div>
             <div class="tile-value" id="gate-open-time">--</div>
             <div class="tile-sub">at sunrise</div>
@@ -500,6 +502,10 @@
               <div class="tile-label">Dusk</div>
               <div class="tile-value" id="dusk-time">--</div>
             </div>
+          </div>
+          <div class="tile wide tile-row">
+            <div class="tile-label">Closed switch</div>
+            <div class="tile-value" id="closed-switch">--</div>
           </div>
         </div>
       </div>
@@ -560,11 +566,6 @@
             "closed-switch",
             data.closed_switch_pressed ? "Pressed" : "Released",
             "tile-value " + (data.closed_switch_pressed ? "info" : "")
-          );
-          setText(
-            "open-switch",
-            data.open_switch_pressed ? "Pressed" : "Released",
-            "tile-value " + (data.open_switch_pressed ? "info" : "")
           );
 
           const errors = data.errors || [];

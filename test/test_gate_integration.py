@@ -286,6 +286,33 @@ class TestGateDriverRealTimeSimulation:
         assert gate.get_posn() == position_before_stop
 
 
+class TestStatusFile:
+    """The gate process and web app must agree on where the status file lives"""
+
+    def test_web_reads_status_written_by_gate(self, tmp_path, monkeypatch):
+        from unittest.mock import MagicMock
+
+        from chicken_gate.shared import config
+
+        monkeypatch.setattr(config, "RAM_DIR", tmp_path)
+        with patch.dict("sys.modules", {"RPi": MagicMock(), "RPi.GPIO": MagicMock()}):
+            from chicken_gate.gate.main import write_gate_status
+        from chicken_gate.web.app import read_gate_status
+
+        gate = Gate()
+        gate.reset_posn_to(42)
+        schedule = MagicMock()
+        schedule.get_schedule_info.return_value = {}
+
+        write_gate_status(gate, schedule, schedule_enabled=False)
+
+        assert config.get_status_file_path().parent == tmp_path
+        status = read_gate_status()
+        assert status["errors"] == []
+        assert status["position"] == 42
+        assert status["schedule_enabled"] is False
+
+
 class TestErrorConditions:
     """Test error handling in the integrated system"""
 

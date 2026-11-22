@@ -5,18 +5,34 @@ Provides a web interface to view gate position, switch status, and send commands
 """
 
 import json
+import logging
 import os
 from datetime import datetime
 
 from flask import Flask, jsonify, render_template, request
 
+from ..shared.config import get_status_file_path
+
 app = Flask(__name__)
+
+
+class _SkipStatusPolls(logging.Filter):
+    """Drop access-log lines for the page's frequent status polling.
+
+    Each line ends up in syslog on the SD card; other requests are still logged.
+    """
+
+    def filter(self, record):
+        return "/api/status" not in record.getMessage()
+
+
+logging.getLogger("werkzeug").addFilter(_SkipStatusPolls())
 
 
 def read_gate_status():
     """Read current gate status from the status file written by main.py"""
     try:
-        status_file = "gate_status.json"
+        status_file = get_status_file_path()
         if os.path.exists(status_file):
             with open(status_file) as f:
                 status = json.load(f)

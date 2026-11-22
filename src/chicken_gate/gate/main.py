@@ -4,13 +4,11 @@ import os
 import time
 from datetime import datetime
 
+from ..shared.config import get_status_file_path
 from .gate import Gate
 from .gate_cmd import Cmd
 from .gate_drv import Gate_drv
 from .schedule import Schedule
-
-# File paths for web interface communication
-STATUS_FILE = "gate_status.json"
 
 
 def write_gate_status(gate, schedule, schedule_enabled):
@@ -27,11 +25,12 @@ def write_gate_status(gate, schedule, schedule_enabled):
         status["schedule_enabled"] = schedule_enabled
 
         # Write to temporary file first
-        temp_file = STATUS_FILE + ".tmp"
+        status_file = get_status_file_path()
+        temp_file = status_file.with_name(status_file.name + ".tmp")
         with open(temp_file, "w") as f:
             json.dump(status, f)
         # Atomic rename
-        os.rename(temp_file, STATUS_FILE)
+        os.replace(temp_file, status_file)
     except Exception as e:
         print(f"Error writing status file: {e}")
 
