@@ -45,21 +45,39 @@ Don't hand-edit code on the Pi. Instead:
 
 1. Edit in the local repo, then lint and test (commands below).
 2. Commit and push to `origin/master`.
-3. On the Pi, pull and restart only the services you changed:
+3. On the Pi, pull:
 
    ```bash
-   ssh -o BatchMode=yes pi@192.168.1.192 'cd ~/sw/chicken-gate && git pull -q --ff-only \
-     && sudo -n systemctl restart chicken-gate.service chicken-gate-web.service'
+   ssh -o BatchMode=yes pi@192.168.1.192 'cd ~/sw/chicken-gate && git pull -q --ff-only'
    ```
 
-   - Template, CSS or JS changes only need `chicken-gate-web.service`.
+4. Restart **only** the service whose code changed:
+
+   - Web app only (`src/chicken_gate/web/`, templates, CSS, JS):
+
+     ```bash
+     ssh -o BatchMode=yes pi@192.168.1.192 'sudo -n systemctl restart chicken-gate-web.service'
+     ```
+
+   - Gate controller (`src/chicken_gate/gate/`, or `shared/` which both use).
+     **First** confirm the gate is idle (see the next section), then restart it:
+
+     ```bash
+     curl -s http://192.168.1.192/api/status | grep -o '"is_moving": *[a-z]*'
+     # Only if that prints "is_moving":false
+     ssh -o BatchMode=yes pi@192.168.1.192 'sudo -n systemctl restart chicken-gate.service'
+     ```
+
+     If `shared/` changed, restart the web service too.
+
+   - Docs-only changes need no restart.
    - Code-only changes don't need the `install-*.sh` scripts. Rerun those only
      when the systemd unit files or entry points change.
 
-4. Verify. Check the service is running with `systemctl is-active ...`, read the
+5. Verify. Check the restarted service with `systemctl is-active ...`, read the
    recent logs with `journalctl -u chicken-gate.service --since -2min`, and fetch
    `curl http://192.168.1.192/api/status`.
-5. Make sure local, `origin/master` and the Pi are all on the same commit.
+6. Make sure local, `origin/master` and the Pi are all on the same commit.
 
 ### Restarting the gate service is not free
 
