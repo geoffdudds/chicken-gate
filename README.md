@@ -163,6 +163,29 @@ These scripts will:
 - Enable and start the services
 - Show status and helpful information
 
+Code-only changes (Python files under `src/`) don't need the install scripts;
+pull and restart the services:
+
+```bash
+cd ~/sw/chicken-gate && git pull
+sudo systemctl restart chicken-gate.service chicken-gate-web.service
+```
+
+Re-run the install scripts only when a file in `systemd/` changes.
+
+## Accessing the Web Interface
+
+The web app (`chicken-gate-web.service`) listens on port 5000. Port 80 is
+redirected to 5000 by an iptables rule (`setup-port-forwarding.sh`, restored at
+boot by a root `@reboot` crontab entry), so no port is needed in the URL:
+
+| From | URL |
+| --- | --- |
+| Home network | <http://192.168.1.192> (or <http://192.168.1.192:5000>) |
+| Anywhere via Tailscale | <http://chicken-gate> (or <http://chicken-gate:5000>) |
+
+The first page load after a service restart can take ~10 s on the Pi Zero.
+
 ## API Endpoints
 
 - `GET /api/status` - Get current gate status
